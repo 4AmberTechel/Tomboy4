@@ -1,0 +1,36 @@
+name: Handle Contact Form Submission
+
+on:
+  repository_dispatch:
+    types: [contact-form]
+
+jobs:
+  create-issue:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create GitHub Issue from Contact Form
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.PAC }}
+        script: |
+          const { name, email, subject, message } = context.payload.client_payload;
+          
+          const issueBody = `**From:** ${name}
+          **Email:** ${email || 'Not provided'}
+          **Subject:** ${subject}
+          
+          **Message:**
+          ${message}
+          
+          ---
+          *Submitted via website contact form at ${new Date().toISOString()}*`;
+          
+          const issue = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Contact Form: ${subject}`,
+            body: issueBody,
+            labels: ['contact-form']
+          });
+          
+          console.log(`Created issue #${issue.data.number}: ${issue.data.html_url}`);
