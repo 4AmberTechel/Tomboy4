@@ -1,0 +1,440 @@
+<div class="page-section">
+    <h1 class="page-title">Contact Me</h1>
+    <p class="page-subtitle">Let's work together to create something amazing</p>
+    
+    <div class="contact-container">
+        <div class="contact-form-section">
+            <div class="contact-form">
+                <h2>Send a Message</h2>
+                <form class="message-form" onsubmit="handleSubmit(event)">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" required placeholder="Your name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email <span class="optional">(optional - leave blank to stay anonymous)</span></label>
+                        <input type="email" id="email" name="email" placeholder="your.email@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <input type="text" id="subject" name="subject" required placeholder="What's this about?">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" rows="6" required placeholder="Tell me about your project, ideas, or just say hello..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <span class="btn-text">Send Message</span>
+                        <span class="btn-icon">✨</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="contact-info-section">
+            <div class="contact-info">
+                <h2>Get in Touch</h2>
+                <p>I'd love to hear from you! Whether you're interested in booking a session, have questions about my work, or just want to connect, don't hesitate to reach out.</p>
+                
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <div class="contact-icon">📧</div>
+                        <div class="contact-text">
+                            <h3>Email</h3>
+                            <p>Available upon request</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <div class="contact-text">
+                            <h3>Location</h3>
+                            <p>Available for shoots worldwide</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">⏰</div>
+                        <div class="contact-text">
+                            <h3>Response Time</h3>
+                            <p>Usually within 24 hours</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="social-links">
+                    <h3>Follow My Work</h3>
+                    <div class="social-buttons">
+                        <a href="#" class="social-btn instagram">
+                            <span>📸</span>
+                            Instagram
+                        </a>
+                        <a href="#" class="social-btn portfolio">
+                            <span>🎭</span>
+                            Portfolio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.contact-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    margin-top: 3rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.contact-form-section, .contact-info-section {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 3rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.contact-form h2, .contact-info h2 {
+    color: #6b73ff;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.optional {
+    font-weight: normal;
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+}
+
+.form-group input, .form-group textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.form-group input:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: #6b73ff;
+    box-shadow: 0 0 0 3px rgba(107, 115, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 1.2rem 2rem;
+    background: linear-gradient(45deg, #ff6b9d, #6b73ff);
+    border: none;
+    border-radius: 15px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(107, 115, 255, 0.3);
+}
+
+.submit-btn:active {
+    transform: translateY(-1px);
+}
+
+.contact-info p {
+    color: #666;
+    line-height: 1.8;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+.contact-details {
+    margin: 2rem 0;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(107, 115, 255, 0.05);
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+}
+
+.contact-item:hover {
+    transform: translateX(5px);
+}
+
+.contact-icon {
+    font-size: 1.8rem;
+    margin-right: 1rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(45deg, #ff6b9d, #6b73ff);
+    border-radius: 12px;
+    color: white;
+}
+
+.contact-text h3 {
+    color: #6b73ff;
+    margin-bottom: 0.3rem;
+    font-size: 1.1rem;
+}
+
+.contact-text p {
+    color: #666;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.social-links {
+    margin-top: 2.5rem;
+    text-align: center;
+}
+
+.social-links h3 {
+    color: #6b73ff;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.social-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.social-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background: rgba(107, 115, 255, 0.1);
+    border-radius: 25px;
+    color: #6b73ff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.social-btn:hover {
+    background: linear-gradient(45deg, #ff6b9d, #6b73ff);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(107, 115, 255, 0.3);
+}
+
+.social-btn span {
+    font-size: 1.1rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .contact-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .contact-form-section, .contact-info-section {
+        padding: 2rem;
+    }
+    
+    .contact-form h2, .contact-info h2 {
+        font-size: 1.5rem;
+    }
+    
+    .social-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .social-btn {
+        width: 200px;
+        justify-content: center;
+    }
+}
+
+/* Success message styles */
+.success-message {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-weight: bold;
+    display: none;
+}
+
+.success-message.show {
+    display: block;
+    animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<script>
+function handleSubmit(event) {
+    event.preventDefault();
+    
+    // Get form data
+    const formData = new FormData(event.target);
+    const name = formData.get('name');
+    const email = formData.get('email') || 'Anonymous';
+    const subject = formData.get('subject');
+    const message = formData.get('message');
+    
+    // Create success message
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message show';
+    successMessage.innerHTML = `
+        <strong>✨ Message Sent Successfully!</strong><br>
+        Thank you ${name}! I'll get back to you soon.
+    `;
+    
+    // Insert success message before form
+    const form = event.target;
+    form.parentNode.insertBefore(successMessage, form);
+    
+    // Reset form
+    form.reset();
+    
+    // Remove success message after 5 seconds
+    setTimeout(() => {
+        successMessage.remove();
+    }, 5000);
+    
+    // Log the message (in a real implementation, this would send to a server)
+    console.log('Contact form submission:', {
+        name,
+        email,
+        subject,
+        message,
+        timestamp: new Date().toISOString()
+    });
+}
+
+async function submitToGitHub(event) {
+    event.preventDefault();
+    
+    // Get form data
+    const formData = new FormData(event.target);
+    const name = formData.get('name');
+    const email = formData.get('email') || 'Not provided';
+    const subject = formData.get('subject');
+    const message = formData.get('message');
+    
+    // GitHub repository info
+    const REPO_OWNER = 'Gorfonous';
+    const REPO_NAME = 'Website-test';
+    
+    // Get token from localStorage or prompt user
+    let GITHUB_TOKEN = localStorage.getItem('github_token');
+    if (!GITHUB_TOKEN) {
+        GITHUB_TOKEN = prompt('Enter your GitHub token (create one at github.com/settings/tokens with repo access):\n\nThis will be saved in your browser for future use.');
+        if (GITHUB_TOKEN) {
+            localStorage.setItem('github_token', GITHUB_TOKEN);
+        }
+    }
+    
+    try {
+        const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `token ${GITHUB_TOKEN}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title: `Contact Form: ${subject}`,
+                body: `**From:** ${name}\n**Email:** ${email}\n**Subject:** ${subject}\n\n**Message:**\n${message}\n\n---\n*Submitted via website contact form*`,
+                labels: ['contact-form']
+            })
+        });
+
+        if (response.ok) {
+            showSuccessMessage(name, 'Message sent via GitHub Issues!');
+        } else {
+            throw new Error('Failed to submit');
+        }
+    } catch (error) {
+        showErrorMessage('Failed to send message. Please try again.');
+    }
+}
+
+function showSuccessMessage(name, message) {
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success-message show';
+    successDiv.innerHTML = `<strong>✨ ${message}</strong><br>Thank you ${name}!`;
+    
+    const form = event.target;
+    form.parentNode.insertBefore(successDiv, form);
+    form.reset();
+    
+    setTimeout(() => successDiv.remove(), 5000);
+}
+
+function showErrorMessage(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'success-message show';
+    errorDiv.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a52)';
+    errorDiv.innerHTML = `<strong>❌ ${message}</strong>`;
+    
+    const form = event.target;
+    form.parentNode.insertBefore(errorDiv, form);
+    
+    setTimeout(() => errorDiv.remove(), 5000);
+}
+</script>

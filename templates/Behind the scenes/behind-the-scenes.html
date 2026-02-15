@@ -1,0 +1,107 @@
+<style>
+.main-content {
+    background-image: url('/templates/Behind the scenes/background/bkgrnd.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.bts-header {
+    text-align: center;
+    padding: 40px 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    margin-bottom: 40px;
+}
+
+.bts-header h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.bts-header p {
+    font-size: 1.2em;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto;
+    color: #ddd;
+}
+
+.bts-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.bts-image-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.bts-image-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.5);
+}
+
+.bts-image-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .bts-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .bts-header h1 {
+        font-size: 2em;
+    }
+
+    .bts-header p {
+        font-size: 1em;
+    }
+}
+</style>
+
+<div class="bts-header">
+    <h1>Behind the Scenes</h1>
+    <p>{{BTS_SUBTITLE}}</p>
+</div>
+
+<div class="bts-gallery" id="btsGallery">
+    <!-- Images will be loaded dynamically -->
+</div>
+
+<script>
+const btsImages = {{BTS_IMAGES_JSON}};
+
+const gallery = document.getElementById('btsGallery');
+
+btsImages.forEach(imagePath => {
+    const card = document.createElement('div');
+    card.className = 'bts-image-card';
+
+    const link = document.createElement('a');
+    link.href = imagePath;
+    link.target = '_blank';
+
+    const img = document.createElement('img');
+    img.src = imagePath;
+    img.alt = 'Behind the scenes photo';
+    img.loading = 'lazy';
+
+    link.appendChild(img);
+    card.appendChild(link);
+    gallery.appendChild(card);
+});
+</script>

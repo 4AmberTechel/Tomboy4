@@ -1,0 +1,309 @@
+<style id="dynamicBackground">
+    .main-content {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+</style>
+<section class="modeling-section-page">
+    <div class="modeling-header">
+        <h1 class="modeling-title">Modeling Portfolio</h1>
+        <p class="modeling-tagline">Model | Published Artist | Brand Ambassador</p>
+    </div>
+
+    <div class="modeling-content">
+        <div class="modeling-intro">
+            <p>Amber started modeling in 2013 when a photographer offered her a shoot because of her smile. Since then she has worked with many different photographers. She models all genres and has been published 8 times both nationally and internationally, as well as worked numerous promo ads for websites, runway shows, figure art modeling for drawing & photography classes, and more.</p>
+        </div>
+
+        <div class="modeling-resume-section">
+            <h2>Modeling Resume</h2>
+            <div class="pdf-embed-wrapper">
+                <iframe src="https://drive.google.com/file/d/1Qbdi9OmX6Void8O5lYbBCFZ3AAcibVI5/preview" allow="autoplay"></iframe>
+            </div>
+        </div>
+
+        <!-- Category Dropdown -->
+        <div class="category-selector">
+            <select id="categorySelect" onchange="switchCategory()">
+                <!-- Options populated from categoryData -->
+            </select>
+        </div>
+
+        <p class="page-subtitle" id="categorySubtitle"></p>
+
+        <div class="image-grid" id="imageGrid">
+            <!-- Images will be loaded dynamically -->
+        </div>
+
+        <div class="no-images-message" id="noImagesMessage">
+            <p>No images available yet.</p>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content-wrapper">
+            <button class="modal-close" aria-label="Close modal">&times;</button>
+            <button class="modal-nav modal-prev" aria-label="Previous image">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+
+            <div class="modal-image-container">
+                <img id="modalImage" src="" alt="" />
+                <div class="modal-caption">
+                    <span id="modalImageTitle"></span>
+                    <span id="modalImageCounter"></span>
+                </div>
+            </div>
+
+            <button class="modal-nav modal-next" aria-label="Next image">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+
+            <div id="modalLinkButton" class="modal-link-wrapper">
+                <a id="modalExternalLink" href="#" target="_blank" rel="noopener noreferrer">
+                    Visit Product Page
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    const categoryData = {{CATEGORIES_JSON}};
+
+    function populateDropdown() {
+        const select = document.getElementById('categorySelect');
+        select.innerHTML = '';
+
+        const categories = Object.keys(categoryData);
+        categories.forEach(key => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = categoryData[key].title;
+            select.appendChild(option);
+        });
+
+        if (categories.length > 0) {
+            switchCategory();
+        }
+    }
+
+    function switchCategory() {
+        // Close modal if it's open
+        if (document.getElementById('imageModal').classList.contains('active')) {
+            closeModal();
+        }
+
+        const select = document.getElementById('categorySelect');
+        const category = select.value;
+        const data = categoryData[category];
+
+        if (!data) return;
+
+        document.getElementById('categorySubtitle').textContent = data.subtitle;
+
+        // Update background image
+        const mainContent = document.querySelector('.main-content');
+        if (data.background) {
+            mainContent.style.backgroundImage = `url('${data.background}')`;
+        } else {
+            mainContent.style.backgroundImage = 'none';
+        }
+
+        const imageGrid = document.getElementById('imageGrid');
+        const noImagesMessage = document.getElementById('noImagesMessage');
+        imageGrid.innerHTML = '';
+
+        if (data.images.length === 0) {
+            noImagesMessage.style.display = 'block';
+            return;
+        }
+
+        noImagesMessage.style.display = 'none';
+
+        data.images.forEach((imagePath, index) => {
+            createImageItem(imagePath, index + 1, data.title, data.links || {});
+        });
+    }
+
+    function getImageKey(imagePath) {
+        const filename = imagePath.split('/').pop();
+        const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+        return decodeURIComponent(nameWithoutExt.replace(/\+/g, ' '));
+    }
+
+    function createImageItem(imagePath, index, categoryTitle, links) {
+        const imageGrid = document.getElementById('imageGrid');
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-item';
+
+        const img = document.createElement('img');
+        img.src = imagePath;
+        img.alt = `${categoryTitle} Image ${index}`;
+        img.loading = 'lazy';
+
+        imageItem.appendChild(img);
+
+        const imageKey = getImageKey(imagePath);
+        const link = links[imageKey];
+
+        imageItem.addEventListener('click', function() {
+            openModal(imagePath, `${categoryTitle} ${index}`, link, index - 1);
+        });
+
+        imageGrid.appendChild(imageItem);
+    }
+
+    // Modal state
+    let currentImages = [];
+    let currentImageIndex = 0;
+    let currentCategoryLinks = {};
+    let currentCategoryTitle = '';
+
+    function openModal(imagePath, title, link, imageIndex) {
+        const modal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const modalTitle = document.getElementById('modalImageTitle');
+        const modalCounter = document.getElementById('modalImageCounter');
+        const modalLinkButton = document.getElementById('modalLinkButton');
+        const modalExternalLink = document.getElementById('modalExternalLink');
+
+        // Get current category data
+        const select = document.getElementById('categorySelect');
+        const category = select.value;
+        const data = categoryData[category];
+
+        // Store current category images and links
+        currentImages = data.images;
+        currentCategoryLinks = data.links || {};
+        currentCategoryTitle = data.title;
+        currentImageIndex = imageIndex;
+
+        // Set image and title
+        modalImage.src = imagePath;
+        modalImage.alt = title;
+        modalTitle.textContent = title;
+        modalCounter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+
+        // Show/hide external link button
+        if (link) {
+            modalExternalLink.href = link;
+            modalLinkButton.classList.add('active');
+        } else {
+            modalLinkButton.classList.remove('active');
+        }
+
+        // Update navigation buttons
+        updateNavButtons();
+
+        // Show modal
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('imageModal');
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+    }
+
+    function navigateModal(direction) {
+        const newIndex = currentImageIndex + direction;
+
+        // Check bounds
+        if (newIndex < 0 || newIndex >= currentImages.length) {
+            return;
+        }
+
+        currentImageIndex = newIndex;
+        const imagePath = currentImages[currentImageIndex];
+        const imageKey = getImageKey(imagePath);
+        const link = currentCategoryLinks[imageKey];
+
+        const modalImage = document.getElementById('modalImage');
+        const modalTitle = document.getElementById('modalImageTitle');
+        const modalCounter = document.getElementById('modalImageCounter');
+        const modalLinkButton = document.getElementById('modalLinkButton');
+        const modalExternalLink = document.getElementById('modalExternalLink');
+
+        // Fade out
+        modalImage.style.opacity = '0';
+        modalImage.style.transform = 'scale(0.95)';
+
+        setTimeout(() => {
+            // Update image
+            modalImage.src = imagePath;
+            modalImage.alt = `${currentCategoryTitle} ${currentImageIndex + 1}`;
+            modalTitle.textContent = `${currentCategoryTitle} ${currentImageIndex + 1}`;
+            modalCounter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+
+            // Update external link
+            if (link) {
+                modalExternalLink.href = link;
+                modalLinkButton.classList.add('active');
+            } else {
+                modalLinkButton.classList.remove('active');
+            }
+
+            // Update navigation buttons
+            updateNavButtons();
+
+            // Fade in
+            modalImage.style.opacity = '1';
+            modalImage.style.transform = 'scale(1)';
+        }, 150);
+    }
+
+    function updateNavButtons() {
+        const prevBtn = document.querySelector('.modal-prev');
+        const nextBtn = document.querySelector('.modal-next');
+
+        prevBtn.disabled = currentImageIndex === 0;
+        nextBtn.disabled = currentImageIndex === currentImages.length - 1;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        populateDropdown();
+
+        // Modal event listeners
+        const modal = document.getElementById('imageModal');
+        const modalOverlay = document.querySelector('.modal-overlay');
+        const closeBtn = document.querySelector('.modal-close');
+        const prevBtn = document.querySelector('.modal-prev');
+        const nextBtn = document.querySelector('.modal-next');
+
+        // Close modal
+        closeBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', closeModal);
+
+        // Navigation
+        prevBtn.addEventListener('click', () => navigateModal(-1));
+        nextBtn.addEventListener('click', () => navigateModal(1));
+
+        // Keyboard controls
+        document.addEventListener('keydown', function(e) {
+            if (!modal.classList.contains('active')) return;
+
+            if (e.key === 'Escape') {
+                closeModal();
+            } else if (e.key === 'ArrowLeft') {
+                navigateModal(-1);
+            } else if (e.key === 'ArrowRight') {
+                navigateModal(1);
+            }
+        });
+    });
+</script>
