@@ -1,0 +1,21 @@
+[package]
+name = "website-test"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = "0.7"
+tokio = { version = "1.0", features = ["full"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["fs", "set-header"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+lettre = "0.11"
+
+[[bin]]
+name = "server"
+path = "src/main.rs"
+
+[[bin]]
+name = "generate-static"
+path = "src/generate_static.rs"
