@@ -96,35 +96,35 @@ fn generate_page(title: &str, content: &str, version: &str) -> String {
     // Update navigation links for GitHub Pages (static generation)
     final_html = final_html.replace(
         r#"<a href="/" class="nav-item">Home</a>"#,
-        r#"<a href="/" class="nav-item">Home</a>"#
+        r#"<a href="" class="nav-item">Home</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/bio/" class="nav-item">Bio</a>"#,
-        r#"<a href="/bio/" class="nav-item">Bio</a>"#
+        r#"<a href="/bio" class="nav-item">Bio</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/acting/" class="nav-item">Acting</a>"#,
-        r#"<a href="/acting/" class="nav-item">Acting</a>"#
+        r#"<a href="/acting" class="nav-item">Acting</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/music/" class="nav-item">Music</a>"#,
-        r#"<a href="/music/" class="nav-item">Music</a>"#
+        r#"<a href="/music" class="nav-item">Music</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/modeling/" class="nav-item">Modeling</a>"#,
-        r#"<a href="/modeling/" class="nav-item">Modeling</a>"#
+        r#"<a href="/modeling" class="nav-item">Modeling</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/reviews/" class="nav-item">Reviews</a>"#,
-        r#"<a href="/reviews/" class="nav-item">Reviews</a>"#
+        r#"<a href="/reviews" class="nav-item">Reviews</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>"#,
-        r#"<a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>"#
+        r#"<a href="/behind-the-scenes" class="nav-item">Behind the Scenes</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/contact/" class="nav-item">Contact</a>"#,
-        r#"<a href="/contact/" class="nav-item">Contact</a>"#
+        r#"<a href="/contact" class="nav-item">Contact</a>"#
     );
 
     // Update image paths for GitHub Pages deployment
@@ -390,35 +390,35 @@ fn generate_modeling_page(content: &str, categories: &[(String, CategoryData)], 
     // Update navigation links for GitHub Pages (modeling page)
     final_html = final_html.replace(
         r#"<a href="/" class="nav-item">Home</a>"#,
-        r#"<a href="/" class="nav-item">Home</a>"#
+        r#"<a href="" class="nav-item">Home</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/bio/" class="nav-item">Bio</a>"#,
-        r#"<a href="/bio/" class="nav-item">Bio</a>"#
+        r#"<a href="/bio" class="nav-item">Bio</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/acting/" class="nav-item">Acting</a>"#,
-        r#"<a href="/acting/" class="nav-item">Acting</a>"#
+        r#"<a href="/acting" class="nav-item">Acting</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/music/" class="nav-item">Music</a>"#,
-        r#"<a href="/music/" class="nav-item">Music</a>"#
+        r#"<a href="/music" class="nav-item">Music</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/modeling/" class="nav-item">Modeling</a>"#,
-        r#"<a href="/modeling/" class="nav-item">Modeling</a>"#
+        r#"<a href="/modeling" class="nav-item">Modeling</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/reviews/" class="nav-item">Reviews</a>"#,
-        r#"<a href="/reviews/" class="nav-item">Reviews</a>"#
+        r#"<a href="/reviews" class="nav-item">Reviews</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>"#,
-        r#"<a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>"#
+        r#"<a href="/behind-the-scenes" class="nav-item">Behind the Scenes</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/contact/" class="nav-item">Contact</a>"#,
-        r#"<a href="/contact/" class="nav-item">Contact</a>"#
+        r#"<a href="/contact" class="nav-item">Contact</a>"#
     );
 
     // Update CSS path for GitHub Pages deployment with cache busting
