@@ -96,53 +96,53 @@ fn generate_page(title: &str, content: &str, version: &str) -> String {
     // Update navigation links for GitHub Pages (static generation)
     final_html = final_html.replace(
         r#"<a href="/" class="nav-item">Home</a>"#,
-        r#"<a href="/Website-test/index.html" class="nav-item">Home</a>"#
+        r#"<a href="/index.html" class="nav-item">Home</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/bio/" class="nav-item">Bio</a>"#,
-        r#"<a href="/Website-test/bio/index.html" class="nav-item">Bio</a>"#
+        r#"<a href="/bio/index.html" class="nav-item">Bio</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/acting/" class="nav-item">Acting</a>"#,
-        r#"<a href="/Website-test/acting/index.html" class="nav-item">Acting</a>"#
+        r#"<a href="/acting/index.html" class="nav-item">Acting</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/music/" class="nav-item">Music</a>"#,
-        r#"<a href="/Website-test/music/index.html" class="nav-item">Music</a>"#
+        r#"<a href="/music/index.html" class="nav-item">Music</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/modeling/" class="nav-item">Modeling</a>"#,
-        r#"<a href="/Website-test/modeling/index.html" class="nav-item">Modeling</a>"#
+        r#"<a href="/modeling/index.html" class="nav-item">Modeling</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/reviews/" class="nav-item">Reviews</a>"#,
-        r#"<a href="/Website-test/reviews/index.html" class="nav-item">Reviews</a>"#
+        r#"<a href="/reviews/index.html" class="nav-item">Reviews</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>"#,
-        r#"<a href="/Website-test/behind-the-scenes/index.html" class="nav-item">Behind the Scenes</a>"#
+        r#"<a href="/behind-the-scenes/index.html" class="nav-item">Behind the Scenes</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/contact/" class="nav-item">Contact</a>"#,
-        r#"<a href="/Website-test/contact/index.html" class="nav-item">Contact</a>"#
+        r#"<a href="/contact/index.html" class="nav-item">Contact</a>"#
     );
 
     // Update image paths for GitHub Pages deployment
     final_html = final_html.replace(
         r#"src="/templates/global-images/"#,
-        r#"src="/Website-test/global-images/"#
+        r#"src="/global-images/"#
     );
 
     // Update background image paths for GitHub Pages deployment
     final_html = final_html.replace(
         r#"url('/templates/global-images/"#,
-        r#"url('/Website-test/global-images/"#
+        r#"url('/global-images/"#
     );
 
     // Update CSS path for GitHub Pages deployment with cache busting
     final_html = final_html.replace(
         r#"href="/templates/styles.css""#,
-        &format!(r#"href="/Website-test/styles.css?v={}""#, version)
+        &format!(r#"href="/styles.css?v={}""#, version)
     );
 
     final_html
@@ -390,41 +390,41 @@ fn generate_modeling_page(content: &str, categories: &[(String, CategoryData)], 
     // Update navigation links for GitHub Pages (modeling page)
     final_html = final_html.replace(
         r#"<a href="/" class="nav-item">Home</a>"#,
-        r#"<a href="/Website-test/index.html" class="nav-item">Home</a>"#
+        r#"<a href="/index.html" class="nav-item">Home</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/bio/" class="nav-item">Bio</a>"#,
-        r#"<a href="/Website-test/bio/index.html" class="nav-item">Bio</a>"#
+        r#"<a href="/bio/index.html" class="nav-item">Bio</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/acting/" class="nav-item">Acting</a>"#,
-        r#"<a href="/Website-test/acting/index.html" class="nav-item">Acting</a>"#
+        r#"<a href="/acting/index.html" class="nav-item">Acting</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/music/" class="nav-item">Music</a>"#,
-        r#"<a href="/Website-test/music/index.html" class="nav-item">Music</a>"#
+        r#"<a href="/music/index.html" class="nav-item">Music</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/modeling/" class="nav-item">Modeling</a>"#,
-        r#"<a href="/Website-test/modeling/index.html" class="nav-item">Modeling</a>"#
+        r#"<a href="/modeling/index.html" class="nav-item">Modeling</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/reviews/" class="nav-item">Reviews</a>"#,
-        r#"<a href="/Website-test/reviews/index.html" class="nav-item">Reviews</a>"#
+        r#"<a href="/reviews/index.html" class="nav-item">Reviews</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>"#,
-        r#"<a href="/Website-test/behind-the-scenes/index.html" class="nav-item">Behind the Scenes</a>"#
+        r#"<a href="/behind-the-scenes/index.html" class="nav-item">Behind the Scenes</a>"#
     );
     final_html = final_html.replace(
         r#"<a href="/contact/" class="nav-item">Contact</a>"#,
-        r#"<a href="/Website-test/contact/index.html" class="nav-item">Contact</a>"#
+        r#"<a href="/contact/index.html" class="nav-item">Contact</a>"#
     );
 
     // Update CSS path for GitHub Pages deployment with cache busting
     final_html = final_html.replace(
         r#"href="/templates/styles.css""#,
-        &format!(r#"href="/Website-test/styles.css?v={}""#, version)
+        &format!(r#"href="/styles.css?v={}""#, version)
     );
 
     final_html
