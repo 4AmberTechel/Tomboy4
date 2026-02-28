@@ -663,6 +663,12 @@ async fn contact_form_handler(Form(form): Form<ContactForm>) -> Html<String> {
 */
 
 
+fn get_lan_ip() -> Option<std::net::IpAddr> {
+    let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
+    socket.connect("8.8.8.8:80").ok()?;
+    socket.local_addr().ok().map(|a| a.ip())
+}
+
 #[tokio::main]
 async fn main() {
     let templates = match discover_templates() {
@@ -706,20 +712,17 @@ async fn main() {
             header::HeaderValue::from_static("no-cache, no-store, must-revalidate"),
         ));
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
         .unwrap();
 
-    println!("\nServer running on http://127.0.0.1:3000");
+    println!("\nServer running on http://0.0.0.0:3000 (all interfaces)");
+    println!("Local:   http://127.0.0.1:3000");
+    if let Some(ip) = get_lan_ip() {
+        println!("Network: http://{}:3000", ip);
+    }
     println!("Available pages:");
-    println!("  - http://127.0.0.1:3000");
-    println!("  - http://127.0.0.1:3000/bio");
-    println!("  - http://127.0.0.1:3000/acting");
-    println!("  - http://127.0.0.1:3000/music");
-    println!("  - http://127.0.0.1:3000/modeling");
-    println!("  - http://127.0.0.1:3000/reviews");
-    println!("  - http://127.0.0.1:3000/behind-the-scenes");
-    println!("  - http://127.0.0.1:3000/contact");
+    println!("  /  /bio  /acting  /music  /modeling  /reviews  /behind-the-scenes  /contact");
 
     axum::serve(listener, app).await.unwrap();
 }
