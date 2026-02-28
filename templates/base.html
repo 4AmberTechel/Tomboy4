@@ -46,11 +46,12 @@
 
         .nav-menu {
             display: flex;
-            justify-content: center;
+            align-items: center;
             flex-wrap: wrap;
             gap: 0;
             background: linear-gradient(45deg, #ff6b9d, #6b73ff);
             padding: 0.5rem 0;
+            position: relative;
         }
 
         .nav-item {
@@ -257,13 +258,14 @@
 
         @media (max-width: 768px) {
             .nav-menu {
-                flex-direction: column;
-                gap: 0;
+                flex-wrap: nowrap;
+                padding: 0;
             }
 
             .nav-item {
                 border-right: none;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+                padding: 1rem 1.5rem;
             }
 
             .page-title {
@@ -282,10 +284,6 @@
                 margin: 0;
                 border-radius: 0;
             }
-
-            .modeling-dropdown:hover .dropdown-content {
-                display: block;
-            }
         }
     </style>
     <link rel="stylesheet" href="/templates/styles.css">
@@ -293,15 +291,18 @@
 <body>
     <header class="header">
         <div class="logo">4AmberTechel</div>
-        <nav class="nav-menu">
-            <a href="/" class="nav-item">Home</a>
-            <a href="/bio/" class="nav-item">Bio</a>
-            <a href="/acting/" class="nav-item">Acting</a>
-            <a href="/music/" class="nav-item">Music</a>
-            <a href="/modeling/" class="nav-item">Modeling</a>
-            <a href="/reviews/" class="nav-item">Reviews</a>
-            <a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>
-            <a href="/contact/" class="nav-item">Contact</a>
+        <nav class="nav-menu" id="main-nav">
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">&#9776;</button>
+            <div id="nav-links">
+                <a href="/" class="nav-item">Home</a>
+                <a href="/bio/" class="nav-item">Bio</a>
+                <a href="/acting/" class="nav-item">Acting</a>
+                <a href="/music/" class="nav-item">Music</a>
+                <a href="/modeling/" class="nav-item">Modeling</a>
+                <a href="/reviews/" class="nav-item">Reviews</a>
+                <a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>
+                <a href="/contact/" class="nav-item">Contact</a>
+            </div>
         </nav>
     </header>
 
@@ -343,5 +344,49 @@
             </div>
         </div>
     </footer>
+    <script>
+        (function () {
+            var btn = document.getElementById('hamburger-btn');
+            var links = document.getElementById('nav-links');
+            if (!btn || !links) return;
+
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var open = links.classList.toggle('nav-open');
+                btn.innerHTML = open ? '&#10005;' : '&#9776;';
+            });
+
+            document.addEventListener('click', function () {
+                links.classList.remove('nav-open');
+                btn.innerHTML = '&#9776;';
+            });
+
+            links.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+
+            // Dropdown touch support on mobile
+            var dropdownTriggers = document.querySelectorAll('.modeling-dropdown > .nav-item');
+            dropdownTriggers.forEach(function (trigger) {
+                trigger.addEventListener('touchend', function (e) {
+                    var parent = trigger.closest('.modeling-dropdown');
+                    if (!parent) return;
+                    if (!parent.classList.contains('dropdown-open')) {
+                        e.preventDefault();
+                        document.querySelectorAll('.modeling-dropdown').forEach(function (d) {
+                            d.classList.remove('dropdown-open');
+                        });
+                        parent.classList.add('dropdown-open');
+                    }
+                });
+            });
+
+            document.addEventListener('touchend', function () {
+                document.querySelectorAll('.modeling-dropdown').forEach(function (d) {
+                    d.classList.remove('dropdown-open');
+                });
+            });
+        })();
+    </script>
 </body>
 </html>

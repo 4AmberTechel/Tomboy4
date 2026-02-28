@@ -2313,3 +2313,80 @@
 body.modal-open {
     overflow: hidden;
 }
+
+/* ===== MOBILE CRITICAL FIXES ===== */
+
+/* Hamburger button — hidden on desktop */
+.hamburger {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 0.4rem 1rem;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* Nav links container — flex row on desktop */
+#nav-links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+/* Modeling dropdown: support .dropdown-open class for touch */
+.modeling-dropdown.dropdown-open .dropdown-content {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    /* Fix iOS Safari: background-attachment:fixed not supported on elements */
+    .main-content {
+        background-attachment: scroll !important;
+    }
+
+    /* Show hamburger on mobile */
+    .hamburger {
+        display: flex;
+    }
+
+    /* Nav links hidden until toggled */
+    #nav-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    #nav-links.nav-open {
+        display: flex;
+    }
+
+    /* Reduce PDF iframe height on mobile */
+    .pdf-embed-wrapper iframe,
+    .resumes-row .pdf-embed-wrapper iframe {
+        height: 400px;
+    }
+
+    /* Home gallery: wrap instead of horizontal scroll */
+    .gallery-images {
+        flex-wrap: wrap;
+        overflow-x: hidden;
+    }
+
+    .gallery-image {
+        width: 100%;
+        max-width: 100%;
+        flex-shrink: 1;
+    }
+
+    /* Portfolio grid: single column on narrow screens */
+    .portfolio-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
