@@ -14,7 +14,10 @@
 
     <div class="modeling-content">
         <div class="modeling-intro">
-            <p>Amber started modeling in 2013 when a photographer offered her a shoot because of her smile. Since then she has worked with many different photographers. She models all genres and has been published 8 times both nationally and internationally, as well as worked numerous promo ads for websites, runway shows, figure art modeling for drawing & photography classes, and more.</p>
+            <p>Amber started modeling in 2013 when a photographer offered her a shoot because of her smile. Since then
+                she has worked with many different photographers. She models all genres and has been published 8 times
+                both nationally and internationally, as well as worked numerous promo ads for websites, runway shows,
+                figure art modeling for drawing & photography classes, and more.</p>
         </div>
 
         <!-- Category Dropdown -->
@@ -37,43 +40,47 @@
         <div class="modeling-resume-section">
             <h2>Modeling Resume</h2>
             <div class="pdf-embed-wrapper">
-                <iframe src="https://drive.google.com/file/d/1Qbdi9OmX6Void8O5lYbBCFZ3AAcibVI5/preview" allow="autoplay"></iframe>
+                <iframe allow="autoplay"
+                        src="https://drive.google.com/file/d/1Qbdi9OmX6Void8O5lYbBCFZ3AAcibVI5/preview"></iframe>
             </div>
         </div>
     </div>
 
     <!-- Image Modal -->
-    <div id="imageModal" class="modal">
+    <div class="modal" id="imageModal">
         <div class="modal-overlay"></div>
         <div class="modal-content-wrapper">
-            <button class="modal-close" aria-label="Close modal">&times;</button>
-            <button class="modal-nav modal-prev" aria-label="Previous image">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button aria-label="Close modal" class="modal-close">&times;</button>
+            <button aria-label="Previous image" class="modal-nav modal-prev">
+                <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                     viewBox="0 0 24 24" width="24">
                     <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
             </button>
 
             <div class="modal-image-container">
-                <img id="modalImage" src="" alt="" />
+                <img alt="" id="modalImage" src=""/>
                 <div class="modal-caption">
                     <span id="modalImageTitle"></span>
                     <span id="modalImageCounter"></span>
                 </div>
             </div>
 
-            <button class="modal-nav modal-next" aria-label="Next image">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button aria-label="Next image" class="modal-nav modal-next">
+                <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                     viewBox="0 0 24 24" width="24">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
             </button>
 
-            <div id="modalLinkButton" class="modal-link-wrapper">
-                <a id="modalExternalLink" href="#" target="_blank" rel="noopener noreferrer">
+            <div class="modal-link-wrapper" id="modalLinkButton">
+                <a href="#" id="modalExternalLink" rel="noopener noreferrer" target="_blank">
                     Visit Product Page
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                         viewBox="0 0 24 24" width="16">
                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                         <polyline points="15 3 21 3 21 9"></polyline>
-                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                        <line x1="10" x2="21" y1="14" y2="3"></line>
                     </svg>
                 </a>
             </div>
@@ -82,7 +89,12 @@
 </section>
 
 <script>
-    const categoryData = {{CATEGORIES_JSON}};
+    const categoryData = {
+    {
+        CATEGORIES_JSON
+    }
+    }
+    ;
 
     function populateDropdown() {
         const select = document.getElementById('categorySelect');
@@ -160,7 +172,7 @@
         const imageKey = getImageKey(imagePath);
         const link = links[imageKey];
 
-        imageItem.addEventListener('click', function() {
+        imageItem.addEventListener('click', function () {
             openModal(imagePath, `${categoryTitle} ${index}`, link, index - 1);
         });
 
@@ -275,7 +287,7 @@
         nextBtn.disabled = currentImageIndex === currentImages.length - 1;
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         populateDropdown();
 
         // Modal event listeners
@@ -294,7 +306,7 @@
         nextBtn.addEventListener('click', () => navigateModal(1));
 
         // Keyboard controls
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (!modal.classList.contains('active')) return;
 
             if (e.key === 'Escape') {

@@ -30,8 +30,12 @@
 }
 
 @keyframes shimmer {
-    0%, 100% { background-position: 200% 0; }
-    50% { background-position: -200% 0; }
+    0%, 100% {
+        background-position: 200% 0;
+    }
+    50% {
+        background-position: -200% 0;
+    }
 }
 
 .portfolio-item:hover {
@@ -192,8 +196,12 @@
 }
 
 @keyframes gradientText {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
 }
 
 .welcome-subtitle {
@@ -238,33 +246,33 @@
     .portfolio-grid {
         grid-template-columns: 2fr 1fr 1fr !important;
     }
-    
+
     .featured-news {
         grid-row: span 2;
     }
 }
 
 /* Background colors for each section with enhanced gradients */
-.newsletter-bg { 
-    background: linear-gradient(135deg, #ff6b9d 0%, #ff8a80 50%, #ffa07a 100%) !important; 
+.newsletter-bg {
+    background: linear-gradient(135deg, #ff6b9d 0%, #ff8a80 50%, #ffa07a 100%) !important;
     color: white !important;
     position: relative !important;
 }
 
-.music-bg { 
-    background: linear-gradient(135deg, #6b73ff 0%, #9c27b0 50%, #8e24aa 100%) !important; 
+.music-bg {
+    background: linear-gradient(135deg, #6b73ff 0%, #9c27b0 50%, #8e24aa 100%) !important;
     color: white !important;
     position: relative !important;
 }
 
-.mission-bg { 
-    background: linear-gradient(135deg, #4caf50 0%, #8bc34a 50%, #66bb6a 100%) !important; 
+.mission-bg {
+    background: linear-gradient(135deg, #4caf50 0%, #8bc34a 50%, #66bb6a 100%) !important;
     color: white !important;
     position: relative !important;
 }
 
-.cta-bg { 
-    background: linear-gradient(135deg, #ff9800 0%, #ffc107 50%, #ffb300 100%) !important; 
+.cta-bg {
+    background: linear-gradient(135deg, #ff9800 0%, #ffc107 50%, #ffb300 100%) !important;
     color: white !important;
     position: relative !important;
 }
@@ -338,12 +346,35 @@
     white-space: nowrap !important;
 }
 
-.genre-tag.pop { background: #e3f2fd; color: #1976d2; }
-.genre-tag.metal { background: #fce4ec; color: #c2185b; }
-.genre-tag.country { background: #fff3e0; color: #f57c00; }
-.genre-tag.hiphop { background: #f3e5f5; color: #7b1fa2; }
-.genre-tag.indie { background: #e8f5e8; color: #388e3c; }
-.genre-tag.collab { background: #fff8e1; color: #f9a825; }
+.genre-tag.pop {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.genre-tag.metal {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+.genre-tag.country {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.genre-tag.hiphop {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.genre-tag.indie {
+    background: #e8f5e8;
+    color: #388e3c;
+}
+
+.genre-tag.collab {
+    background: #fff8e1;
+    color: #f9a825;
+}
 
 /* Mission section styling with enhanced visuals */
 .mission-quote {
@@ -422,9 +453,15 @@
 }
 
 @keyframes shine {
-    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-    50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-    100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    50% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
 }
 
 .portfolio-title {
@@ -463,129 +500,129 @@
     .hero-section {
         padding: 1.5rem 1rem;
     }
-    
+
     .split-content-section {
         flex-direction: column;
         gap: 2rem;
         margin: 2rem 0;
         min-height: auto;
     }
-    
+
     .split-left, .split-right {
         flex: none;
     }
-    
+
     .image-gallery-section {
         padding: 1.5rem 0;
     }
-    
+
     .gallery-images {
         gap: 1rem;
         padding: 0 1rem;
     }
-    
+
     .gallery-image {
         width: 100%;
         max-width: 420px;
         height: 270px;
     }
-    
+
     .album-cover {
         max-width: 350px;
     }
-    
+
     .album-cover-section {
         margin: 1rem 0;
     }
-    
+
     .portfolio-grid {
         grid-template-columns: 1fr !important;
         gap: 1.5rem !important;
         padding: 0 0.5rem !important;
     }
-    
+
     .hero-content {
         padding: 0 0 1.5rem 0 !important;
         margin: 0 !important;
     }
-    
+
     .album-announcement {
         padding: 1.5rem !important;
         margin-top: 1.5rem !important;
     }
-    
+
     .announcement-title {
         font-size: 1.6rem !important;
     }
-    
+
     .welcome-title {
         font-size: 2.5rem !important;
     }
-    
+
     .welcome-subtitle {
         font-size: 1.1rem !important;
     }
-    
+
     .hero-badges {
         flex-direction: column;
         align-items: center;
         gap: 0.8rem;
     }
-    
+
     .badge {
         padding: 0.6rem 1.2rem !important;
         font-size: 0.9rem !important;
     }
-    
+
     .song-row {
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 0.5rem !important;
         padding: 0.6rem 0 !important;
     }
-    
+
     .song-info {
         min-width: auto !important;
         font-size: 0.95rem !important;
     }
-    
+
     .genre-tag {
         font-size: 0.7rem !important;
         padding: 0.25rem 0.5rem !important;
     }
-    
+
     .portfolio-title {
         font-size: 1.5rem !important;
     }
-    
+
     .portfolio-description {
         font-size: 1rem !important;
     }
-    
+
     .portfolio-content {
         padding: 1.5rem !important;
     }
-    
+
     .mission-quote {
         font-size: 1.1rem !important;
         padding: 1rem !important;
     }
-    
+
     .services-highlight {
         gap: 0.5rem !important;
     }
-    
+
     .service-tag {
         font-size: 0.8rem !important;
         padding: 0.5rem 1rem !important;
     }
-    
+
     .streaming-links {
         flex-direction: column !important;
         gap: 1.2rem !important;
         align-items: center !important;
     }
-    
+
     .stream-btn {
         padding: 1rem 1.5rem !important;
         font-size: 0.9rem !important;
@@ -838,26 +875,26 @@
         padding: 2rem 1rem 1.5rem;
         margin-top: 3rem;
     }
-    
+
     .footer-title {
         font-size: 1.5rem;
         margin-bottom: 1.5rem;
     }
-    
+
     .social-icons {
         gap: 1rem;
     }
-    
+
     .social-icon {
         width: 50px;
         height: 50px;
     }
-    
+
     .social-icon svg {
         width: 20px;
         height: 20px;
     }
-    
+
     .footer-bottom p {
         font-size: 0.8rem;
         line-height: 1.4;
@@ -946,11 +983,25 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.timeline-marker.early-years { background: #ff6b9d; }
-.timeline-marker.theater { background: #9c27b0; }
-.timeline-marker.modeling { background: #6b73ff; }
-.timeline-marker.film { background: #ff9800; }
-.timeline-marker.current { background: #4caf50; }
+.timeline-marker.early-years {
+    background: #ff6b9d;
+}
+
+.timeline-marker.theater {
+    background: #9c27b0;
+}
+
+.timeline-marker.modeling {
+    background: #6b73ff;
+}
+
+.timeline-marker.film {
+    background: #ff9800;
+}
+
+.timeline-marker.current {
+    background: #4caf50;
+}
 
 .timeline-content h3 {
     font-size: 1.5rem;
@@ -1212,18 +1263,65 @@
     transform: scale(1.1);
 }
 
-.genre-bubble.pop { background: #e3f2fd; color: #1976d2; }
-.genre-bubble.country { background: #fff3e0; color: #f57c00; }
-.genre-bubble.rock { background: #fce4ec; color: #c2185b; }
-.genre-bubble.folk { background: #e8f5e9; color: #388e3c; }
-.genre-bubble.polka { background: #f3e5f5; color: #7b1fa2; }
-.genre-bubble.waltz { background: #e0f7fa; color: #00838f; }
-.genre-bubble.opera { background: #fff8e1; color: #ff8f00; }
-.genre-bubble.gospel { background: #fbe9e7; color: #d84315; }
-.genre-bubble.yodeling { background: #e8eaf6; color: #3f51b5; }
-.genre-bubble.blues { background: #e1f5fe; color: #0277bd; }
-.genre-bubble.theater { background: #ffebee; color: #c62828; }
-.genre-bubble.more { background: linear-gradient(135deg, #ff6b9d, #6b73ff); color: white; }
+.genre-bubble.pop {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.genre-bubble.country {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.genre-bubble.rock {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+.genre-bubble.folk {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.genre-bubble.polka {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.genre-bubble.waltz {
+    background: #e0f7fa;
+    color: #00838f;
+}
+
+.genre-bubble.opera {
+    background: #fff8e1;
+    color: #ff8f00;
+}
+
+.genre-bubble.gospel {
+    background: #fbe9e7;
+    color: #d84315;
+}
+
+.genre-bubble.yodeling {
+    background: #e8eaf6;
+    color: #3f51b5;
+}
+
+.genre-bubble.blues {
+    background: #e1f5fe;
+    color: #0277bd;
+}
+
+.genre-bubble.theater {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.genre-bubble.more {
+    background: linear-gradient(135deg, #ff6b9d, #6b73ff);
+    color: white;
+}
 
 .album-feature {
     margin-bottom: 3rem;
