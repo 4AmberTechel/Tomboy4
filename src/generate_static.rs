@@ -229,15 +229,27 @@ fn convert_and_copy_images(source_dir: &Path, dest_dir: &Path) {
 					if let Some(stem) = path.file_stem() {
 						let webp_name = format!("{}.webp", stem.to_string_lossy());
 						let dest_file = dest_dir.join(&webp_name);
-						match image::open(&path) {
-							Ok(img) => {
+
+						// Skip if already converted (GitHub Actions caches docs/)
+						if dest_file.exists() {
+							println!("Skipping (cached): {}", webp_name);
+							continue;
+						}
+
+						let open_result = image::ImageReader::open(&path)
+							.ok()
+							.and_then(|r| r.with_guessed_format().ok())
+							.and_then(|r| r.decode().ok());
+
+						match open_result {
+							Some(img) => {
 								if let Err(e) = img.save_with_format(&dest_file, ImageFormat::WebP) {
-									println!("Failed to convert {:?} to WebP: {}", path, e);
+									println!("Failed to convert {:?}: {}", path, e);
 								} else {
 									println!("Converted to WebP: {}", webp_name);
 								}
 							}
-							Err(e) => println!("Failed to open image {:?}: {}", path, e),
+							None => println!("Failed to open image {:?}", path),
 						}
 					}
 				}
@@ -490,11 +502,8 @@ fn main() {
 	let version = get_git_hash();
 	println!("Building with version: {}", version);
 
-	// Clean and rebuild the entire docs directory structure
-	if docs_dir.exists() {
-		fs::remove_dir_all(docs_dir).expect("Failed to remove existing docs directory");
-		println!("Cleaned existing docs directory");
-	}
+	// docs/ is preserved between runs; GitHub Actions caches it so WebP images
+	// are not reconverted. Only HTML/CSS files are overwritten each run.
 
 	create_dir_if_not_exists(docs_dir);
 

@@ -42,6 +42,13 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
+      - name: Cache converted WebP images
+        uses: actions/cache@v4
+        with:
+          path: docs/
+          key: docs-webp-v1
+          restore-keys: docs-webp-
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
