@@ -33,11 +33,11 @@ fn url_encode(input: &str) -> String {
 }
 
 fn read_testimonials() -> Vec<Testimonial> {
-	let yaml_path = Path::new("templates").join("reviews").join("reviews.yaml");
+	let json_path = Path::new("templates").join("reviews").join("reviews.json");
 
-	if yaml_path.exists() {
-		if let Ok(content) = fs::read_to_string(&yaml_path) {
-			if let Ok(data) = serde_yaml::from_str::<TestimonialsData>(&content) {
+	if json_path.exists() {
+		if let Ok(content) = fs::read_to_string(&json_path) {
+			if let Ok(data) = serde_json::from_str::<TestimonialsData>(&content) {
 				return data.testimonials;
 			}
 		}
@@ -141,9 +141,7 @@ fn generate_page(title: &str, content: &str, version: &str) -> String {
 	);
 
 	// Update global image extensions to webp
-	final_html = final_html.replace("homebackground.png", "homebackground.webp");
-	final_html = final_html.replace("homebackground.jpg", "homebackground.webp");
-	final_html = final_html.replace("homebackground.jpeg", "homebackground.webp");
+	final_html = replace_extensions_after_prefix(&final_html, "/global-images/");
 
 	// Update CSS path for GitHub Pages deployment with cache busting
 	final_html = final_html.replace(
@@ -152,6 +150,37 @@ fn generate_page(title: &str, content: &str, version: &str) -> String {
 	);
 
 	final_html
+}
+
+/// After a path prefix like `/global-images/` is found, replace the first
+/// image extension (.png/.jpg/.jpeg) in the following filename with .webp.
+fn replace_extensions_after_prefix(html: &str, prefix: &str) -> String {
+	let mut result = String::with_capacity(html.len() + 64);
+	let mut remaining = html;
+
+	while let Some(pos) = remaining.find(prefix) {
+		result.push_str(&remaining[..pos + prefix.len()]);
+		remaining = &remaining[pos + prefix.len()..];
+
+		let mut replaced = false;
+		for old_ext in &[".png", ".PNG", ".jpg", ".JPG", ".jpeg", ".JPEG"] {
+			if let Some(ext_pos) = remaining.find(old_ext) {
+				let after = remaining.get(ext_pos + old_ext.len()..ext_pos + old_ext.len() + 1);
+				let is_boundary = after.map_or(true, |c| !c.chars().next().map_or(false, |ch| ch.is_alphanumeric()));
+				if is_boundary {
+					result.push_str(&remaining[..ext_pos]);
+					result.push_str(".webp");
+					remaining = &remaining[ext_pos + old_ext.len()..];
+					replaced = true;
+					break;
+				}
+			}
+		}
+		let _ = replaced;
+	}
+
+	result.push_str(remaining);
+	result
 }
 
 fn get_image_list_for_web(images_dir: &Path, category: &str) -> Vec<String> {

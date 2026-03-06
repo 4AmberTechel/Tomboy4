@@ -36,11 +36,11 @@ fn url_encode(input: &str) -> String {
 }
 
 fn read_testimonials() -> Vec<Testimonial> {
-	let yaml_path = Path::new("templates").join("reviews").join("reviews.yaml");
+	let json_path = Path::new("templates").join("reviews").join("reviews.json");
 
-	if yaml_path.exists() {
-		if let Ok(content) = fs::read_to_string(&yaml_path) {
-			if let Ok(data) = serde_yaml::from_str::<TestimonialsData>(&content) {
+	if json_path.exists() {
+		if let Ok(content) = fs::read_to_string(&json_path) {
+			if let Ok(data) = serde_json::from_str::<TestimonialsData>(&content) {
 				return data.testimonials;
 			}
 		}
