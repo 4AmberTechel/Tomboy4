@@ -23,19 +23,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: ''
-
       - name: Cache Rust toolchain
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.rustup
-          key: ${{ runner.os }}-rustup-stable
+          key: ${{ runner.os }}-rustup-stable-${{ hashFiles('**/rust-toolchain.toml') }}
+          restore-keys: ${{ runner.os }}-rustup-stable-
 
       - name: Cache cargo dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -44,6 +40,12 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: ''
 
       - name: Generate static files
         run: cargo run --release --bin generate-static

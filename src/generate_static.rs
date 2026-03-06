@@ -1,3 +1,4 @@
+use image::ImageFormat;
 use serde::Deserialize;
 use std::fs;
 use std::path::Path;
@@ -139,6 +140,11 @@ fn generate_page(title: &str, content: &str, version: &str) -> String {
 		r#"url('/global-images/"#
 	);
 
+	// Update global image extensions to webp
+	final_html = final_html.replace("homebackground.png", "homebackground.webp");
+	final_html = final_html.replace("homebackground.jpg", "homebackground.webp");
+	final_html = final_html.replace("homebackground.jpeg", "homebackground.webp");
+
 	// Update CSS path for GitHub Pages deployment with cache busting
 	final_html = final_html.replace(
 		r#"href="/templates/styles.css""#,
@@ -154,11 +160,13 @@ fn get_image_list_for_web(images_dir: &Path, category: &str) -> Vec<String> {
 	if images_dir.exists() {
 		if let Ok(entries) = fs::read_dir(images_dir) {
 			for entry in entries.flatten() {
-				if let Some(extension) = entry.path().extension() {
-					if matches!(extension.to_str(), Some("png") | Some("jpg") | Some("jpeg")) {
-						if let Some(filename) = entry.file_name().to_str() {
-							let url_encoded_filename = url_encode(filename);
-							images.push(format!("./{}/images/{}", category, url_encoded_filename));
+				let path = entry.path();
+				if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+					if is_image_extension(ext) {
+						if let Some(stem) = path.file_stem() {
+							let webp_name = format!("{}.webp", stem.to_string_lossy());
+							let url_encoded = url_encode(&webp_name);
+							images.push(format!("./{}/images/{}", category, url_encoded));
 						}
 					}
 				}
@@ -170,7 +178,11 @@ fn get_image_list_for_web(images_dir: &Path, category: &str) -> Vec<String> {
 	images
 }
 
-fn copy_images(source_dir: &Path, dest_dir: &Path) {
+fn is_image_extension(ext: &str) -> bool {
+	matches!(ext, "png" | "jpg" | "jpeg" | "PNG" | "JPG" | "JPEG")
+}
+
+fn convert_and_copy_images(source_dir: &Path, dest_dir: &Path) {
 	if !source_dir.exists() {
 		return;
 	}
@@ -182,16 +194,21 @@ fn copy_images(source_dir: &Path, dest_dir: &Path) {
 
 	if let Ok(entries) = fs::read_dir(source_dir) {
 		for entry in entries.flatten() {
-			if let Some(extension) = entry.path().extension() {
-				if matches!(extension.to_str(), Some("png") | Some("jpg") | Some("jpeg")) {
-					if let Some(filename) = entry.file_name().to_str() {
-						let source_file = source_dir.join(filename);
-						let dest_file = dest_dir.join(filename);
-
-						if let Err(e) = fs::copy(&source_file, &dest_file) {
-							println!("Failed to copy {:?} to {:?}: {}", source_file, dest_file, e);
-						} else {
-							println!("Copied image: {}", filename);
+			let path = entry.path();
+			if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+				if is_image_extension(ext) {
+					if let Some(stem) = path.file_stem() {
+						let webp_name = format!("{}.webp", stem.to_string_lossy());
+						let dest_file = dest_dir.join(&webp_name);
+						match image::open(&path) {
+							Ok(img) => {
+								if let Err(e) = img.save_with_format(&dest_file, ImageFormat::WebP) {
+									println!("Failed to convert {:?} to WebP: {}", path, e);
+								} else {
+									println!("Converted to WebP: {}", webp_name);
+								}
+							}
+							Err(e) => println!("Failed to open image {:?}: {}", path, e),
 						}
 					}
 				}
@@ -313,18 +330,21 @@ fn discover_modeling_categories(docs_dir: &Path) -> Vec<(String, CategoryData)> 
 				};
 
 				let docs_images_dir = docs_dir.join("modeling").join(&category_name).join("images");
-				copy_images(&images_dir, &docs_images_dir);
+				convert_and_copy_images(&images_dir, &docs_images_dir);
 
 				let images = get_image_list_for_web(&images_dir, &category_name);
 				let links = read_links_file(&images_dir);
 
 				// Check for and copy background image
 				let background_dir = entry.path().join("Background");
-				let background = if background_dir.join("bkgrnd.png").exists() {
+				let has_bg = ["bkgrnd.png", "bkgrnd.jpg", "bkgrnd.jpeg", "bkgrnd.PNG", "bkgrnd.JPG"]
+					.iter()
+					.any(|f| background_dir.join(f).exists());
+				let background = if has_bg {
 					let docs_bg_dir = docs_dir.join("modeling").join(&category_name).join("Background");
 					create_dir_if_not_exists(&docs_bg_dir);
-					copy_images(&background_dir, &docs_bg_dir);
-					Some(format!("./{}/Background/bkgrnd.png", category_name))
+					convert_and_copy_images(&background_dir, &docs_bg_dir);
+					Some(format!("./{}/Background/bkgrnd.webp", category_name))
 				} else {
 					None
 				};
@@ -467,7 +487,7 @@ fn main() {
 
 	if templates_global_images.exists() {
 		create_dir_if_not_exists(&docs_global_images);
-		copy_images(&templates_global_images, &docs_global_images);
+		convert_and_copy_images(&templates_global_images, &docs_global_images);
 	}
 
 	// Create modeling subdirectory
@@ -503,7 +523,7 @@ fn main() {
 	let bio_bg_dest = bio_dir.join("background");
 	if bio_bg_src.exists() {
 		create_dir_if_not_exists(&bio_bg_dest);
-		copy_images(&bio_bg_src, &bio_bg_dest);
+		convert_and_copy_images(&bio_bg_src, &bio_bg_dest);
 	}
 
 	let bio_path = Path::new("templates").join("bio").join("bio.html");
@@ -513,7 +533,7 @@ fn main() {
 				// Update background image path for GitHub Pages
 				let updated_content = content.replace(
 					"url('/templates/bio/background/bkgrnd.png')",
-					"url('./background/bkgrnd.png')"
+					"url('./background/bkgrnd.webp')"
 				);
 				let html = generate_page("Bio", &updated_content, &version);
 				let file_path = bio_dir.join("index.html");
@@ -535,7 +555,7 @@ fn main() {
 	let music_bg_dest = music_dir.join("background");
 	if music_bg_src.exists() {
 		create_dir_if_not_exists(&music_bg_dest);
-		copy_images(&music_bg_src, &music_bg_dest);
+		convert_and_copy_images(&music_bg_src, &music_bg_dest);
 	}
 
 	let music_path = Path::new("templates").join("music").join("music.html");
@@ -550,7 +570,7 @@ fn main() {
 				// Update background image path for GitHub Pages
 				let updated_content = content.replace(
 					"url('/templates/music/background/bkgrnd.png')",
-					"url('./background/bkgrnd.png')"
+					"url('./background/bkgrnd.webp')"
 				);
 				let html = generate_page("Music", &updated_content, &version);
 				let file_path = music_dir.join("index.html");
@@ -610,7 +630,7 @@ fn main() {
 	let acting_bg_dest = acting_dir.join("Background");
 	if acting_bg_src.exists() {
 		create_dir_if_not_exists(&acting_bg_dest);
-		copy_images(&acting_bg_src, &acting_bg_dest);
+		convert_and_copy_images(&acting_bg_src, &acting_bg_dest);
 	}
 
 	let acting_path = Path::new("templates").join("acting").join("acting.html");
@@ -625,7 +645,7 @@ fn main() {
 				// Update background image path for GitHub Pages
 				let updated_content = content.replace(
 					"url('/templates/acting/Background/bckgrnd.png')",
-					"url('./Background/bckgrnd.png')"
+					"url('./Background/bckgrnd.webp')"
 				);
 				let html = generate_page("Acting", &updated_content, &version);
 				let file_path = acting_dir.join("index.html");
@@ -669,7 +689,7 @@ fn main() {
 	let bts_images_dest = bts_dir.join("images");
 	if bts_images_src.exists() {
 		create_dir_if_not_exists(&bts_images_dest);
-		copy_images(&bts_images_src, &bts_images_dest);
+		convert_and_copy_images(&bts_images_src, &bts_images_dest);
 	}
 
 	// Copy BTS background image
@@ -677,7 +697,7 @@ fn main() {
 	let bts_bg_dest = bts_dir.join("background");
 	if bts_bg_src.exists() {
 		create_dir_if_not_exists(&bts_bg_dest);
-		copy_images(&bts_bg_src, &bts_bg_dest);
+		convert_and_copy_images(&bts_bg_src, &bts_bg_dest);
 	}
 
 	let bts_path = Path::new("templates").join("Behind the scenes").join("behind-the-scenes.html");
@@ -699,12 +719,14 @@ fn main() {
 				let mut images = Vec::new();
 				if bts_images_src.exists() {
 					if let Ok(entries) = fs::read_dir(&bts_images_src) {
-						for entry in entries.flatten() {
-							if let Some(extension) = entry.path().extension() {
-								if matches!(extension.to_str(), Some("png") | Some("jpg") | Some("jpeg")) {
-									if let Some(filename) = entry.file_name().to_str() {
-										let url_encoded_filename = url_encode(filename);
-										images.push(format!("./images/{}", url_encoded_filename));
+					for entry in entries.flatten() {
+							let path = entry.path();
+							if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+								if is_image_extension(ext) {
+									if let Some(stem) = path.file_stem() {
+										let webp_name = format!("{}.webp", stem.to_string_lossy());
+										let url_encoded = url_encode(&webp_name);
+										images.push(format!("./images/{}", url_encoded));
 									}
 								}
 							}
@@ -722,7 +744,7 @@ fn main() {
 					.replace("{{BTS_SUBTITLE}}", &subtitle)
 					.replace(
 						"url('/templates/Behind the scenes/background/bkgrnd.png')",
-						"url('./background/bkgrnd.png')"
+						"url('./background/bkgrnd.webp')"
 					);
 
 				let html = generate_page("Behind the Scenes", &updated_content, &version);
