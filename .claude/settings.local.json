@@ -16,7 +16,8 @@
       "Bash(python3:*)",
       "Bash(sed:*)",
       "Bash(du:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(cmd.exe:*)"
     ],
     "deny": [],
     "ask": []

@@ -5,308 +5,338 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 use website_test::shared::{
-	generate_testimonials_html, generate_youtube_embeds, read_links_file, read_testimonials,
-	read_youtube_links, url_encode,
+    generate_testimonials_html, generate_youtube_embeds, is_image_extension, read_links_file,
+    read_testimonials, read_youtube_links, url_encode,
 };
 
 fn get_git_hash() -> String {
-	Command::new("git")
-		.args(["rev-parse", "--short", "HEAD"])
-		.output()
-		.ok()
-		.and_then(|output| String::from_utf8(output.stdout).ok())
-		.map(|s| s.trim().to_string())
-		.unwrap_or_else(|| "dev".to_string())
+    Command::new("git")
+        .args(["rev-parse", "--short", "HEAD"])
+        .output()
+        .ok()
+        .and_then(|output| String::from_utf8(output.stdout).ok())
+        .map(|s| s.trim().to_string())
+        .unwrap_or_else(|| "dev".to_string())
 }
 
 fn apply_github_pages_nav_links(html: String) -> String {
-	html
-		.replace(
-			r#"<a href="/" class="nav-item">Home</a>"#,
-			r#"<a href="" class="nav-item">Home</a>"#,
-		)
-		.replace(
-			r#"<a href="/bio/" class="nav-item">Bio</a>"#,
-			r#"<a href="/bio" class="nav-item">Bio</a>"#,
-		)
-		.replace(
-			r#"<a href="/acting/" class="nav-item">Acting</a>"#,
-			r#"<a href="/acting" class="nav-item">Acting</a>"#,
-		)
-		.replace(
-			r#"<a href="/music/" class="nav-item">Music</a>"#,
-			r#"<a href="/music" class="nav-item">Music</a>"#,
-		)
-		.replace(
-			r#"<a href="/modeling/" class="nav-item">Modeling</a>"#,
-			r#"<a href="/modeling" class="nav-item">Modeling</a>"#,
-		)
-		.replace(
-			r#"<a href="/reviews/" class="nav-item">Reviews</a>"#,
-			r#"<a href="/reviews" class="nav-item">Reviews</a>"#,
-		)
-		.replace(
-			r#"<a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>"#,
-			r#"<a href="/behind-the-scenes" class="nav-item">Behind the Scenes</a>"#,
-		)
-		.replace(
-			r#"<a href="/contact/" class="nav-item">Contact</a>"#,
-			r#"<a href="/contact" class="nav-item">Contact</a>"#,
-		)
+    html.replace(
+        r#"<a href="/" class="nav-item">Home</a>"#,
+        r#"<a href="" class="nav-item">Home</a>"#,
+    )
+    .replace(
+        r#"<a href="/bio/" class="nav-item">Bio</a>"#,
+        r#"<a href="/bio" class="nav-item">Bio</a>"#,
+    )
+    .replace(
+        r#"<a href="/acting/" class="nav-item">Acting</a>"#,
+        r#"<a href="/acting" class="nav-item">Acting</a>"#,
+    )
+    .replace(
+        r#"<a href="/music/" class="nav-item">Music</a>"#,
+        r#"<a href="/music" class="nav-item">Music</a>"#,
+    )
+    .replace(
+        r#"<a href="/modeling/" class="nav-item">Modeling</a>"#,
+        r#"<a href="/modeling" class="nav-item">Modeling</a>"#,
+    )
+    .replace(
+        r#"<a href="/reviews/" class="nav-item">Reviews</a>"#,
+        r#"<a href="/reviews" class="nav-item">Reviews</a>"#,
+    )
+    .replace(
+        r#"<a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>"#,
+        r#"<a href="/behind-the-scenes" class="nav-item">Behind the Scenes</a>"#,
+    )
+    .replace(
+        r#"<a href="/dance/" class="nav-item">Dance</a>"#,
+        r#"<a href="/dance" class="nav-item">Dance</a>"#,
+    )
+    .replace(
+        r#"<a href="/arts/" class="nav-item">Arts</a>"#,
+        r#"<a href="/arts" class="nav-item">Arts</a>"#,
+    )
+    .replace(
+        r#"<a href="/contact/" class="nav-item">Contact</a>"#,
+        r#"<a href="/contact" class="nav-item">Contact</a>"#,
+    )
 }
 
 fn generate_page(title: &str, content: &str, version: &str) -> String {
-	let base_template = include_str!("../templates/base.html");
-	let mut final_html = base_template
-		.replace("{{TITLE}}", title)
-		.replace("{{CONTENT}}", content);
+    let base_template = include_str!("../templates/base.html");
+    let mut final_html = base_template
+        .replace("{{TITLE}}", title)
+        .replace("{{CONTENT}}", content);
 
-	// Update navigation links for GitHub Pages (static generation)
-	final_html = apply_github_pages_nav_links(final_html);
+    // Update navigation links for GitHub Pages (static generation)
+    final_html = apply_github_pages_nav_links(final_html);
 
-	// Update image paths for GitHub Pages deployment
-	final_html = final_html.replace(
-		r#"src="/templates/global-images/"#,
-		r#"src="/global-images/"#
-	);
+    // Update image paths for GitHub Pages deployment
+    final_html = final_html.replace(
+        r#"src="/templates/global-images/"#,
+        r#"src="/global-images/"#,
+    );
 
-	// Update background image paths for GitHub Pages deployment
-	final_html = final_html.replace(
-		r#"url('/templates/global-images/"#,
-		r#"url('/global-images/"#
-	);
+    // Update background image paths for GitHub Pages deployment
+    final_html = final_html.replace(
+        r#"url('/templates/global-images/"#,
+        r#"url('/global-images/"#,
+    );
 
-	// Update global image extensions to webp
-	final_html = replace_extensions_after_prefix(&final_html, "/global-images/");
+    // Update global image extensions to webp
+    final_html = replace_extensions_after_prefix(&final_html, "/global-images/");
 
-	// Update CSS path for GitHub Pages deployment with cache busting
-	final_html = final_html.replace(
-		r#"href="/templates/styles.css""#,
-		&format!(r#"href="/styles.css?v={}""#, version)
-	);
+    // Update CSS path for GitHub Pages deployment with cache busting
+    final_html = final_html.replace(
+        r#"href="/templates/styles.css""#,
+        &format!(r#"href="/styles.css?v={}""#, version),
+    );
 
-	final_html
+    final_html
 }
 
 /// After a path prefix like `/global-images/` is found, replace the first
 /// image extension (.png/.jpg/.jpeg) in the following filename with .webp.
 fn replace_extensions_after_prefix(html: &str, prefix: &str) -> String {
-	let mut result = String::with_capacity(html.len() + 64);
-	let mut remaining = html;
+    let mut result = String::with_capacity(html.len() + 64);
+    let mut remaining = html;
 
-	while let Some(pos) = remaining.find(prefix) {
-		result.push_str(&remaining[..pos + prefix.len()]);
-		remaining = &remaining[pos + prefix.len()..];
+    while let Some(pos) = remaining.find(prefix) {
+        result.push_str(&remaining[..pos + prefix.len()]);
+        remaining = &remaining[pos + prefix.len()..];
 
-		let mut replaced = false;
-		for old_ext in &[".png", ".PNG", ".jpg", ".JPG", ".jpeg", ".JPEG"] {
-			if let Some(ext_pos) = remaining.find(old_ext) {
-				let after = remaining.get(ext_pos + old_ext.len()..ext_pos + old_ext.len() + 1);
-				let is_boundary = after.map_or(true, |c| !c.chars().next().map_or(false, |ch| ch.is_alphanumeric()));
-				if is_boundary {
-					result.push_str(&remaining[..ext_pos]);
-					result.push_str(".webp");
-					remaining = &remaining[ext_pos + old_ext.len()..];
-					replaced = true;
-					break;
-				}
-			}
-		}
-		let _ = replaced;
-	}
+        let mut replaced = false;
+        for old_ext in &[".png", ".PNG", ".jpg", ".JPG", ".jpeg", ".JPEG"] {
+            if let Some(ext_pos) = remaining.find(old_ext) {
+                let after = remaining.get(ext_pos + old_ext.len()..ext_pos + old_ext.len() + 1);
+                let is_boundary =
+                    after.is_none_or(|c| !c.chars().next().is_some_and(|ch| ch.is_alphanumeric()));
+                if is_boundary {
+                    result.push_str(&remaining[..ext_pos]);
+                    result.push_str(".webp");
+                    remaining = &remaining[ext_pos + old_ext.len()..];
+                    replaced = true;
+                    break;
+                }
+            }
+        }
+        let _ = replaced;
+    }
 
-	result.push_str(remaining);
-	result
+    result.push_str(remaining);
+    result
 }
 
 fn get_image_list_for_web(images_dir: &Path, category: &str) -> Vec<String> {
-	let mut images = Vec::new();
+    let mut images = Vec::new();
 
-	if images_dir.exists() {
-		if let Ok(entries) = fs::read_dir(images_dir) {
-			for entry in entries.flatten() {
-				let path = entry.path();
-				if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
-					if is_image_extension(ext) {
-						if let Some(stem) = path.file_stem() {
-							let webp_name = format!("{}.webp", stem.to_string_lossy());
-							let url_encoded = url_encode(&webp_name);
-							images.push(format!("./{}/images/{}", category, url_encoded));
-						}
-					}
-				}
-			}
-		}
-	}
+    if images_dir.exists()
+        && let Ok(entries) = fs::read_dir(images_dir)
+    {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if let Some(ext) = path.extension().and_then(|e| e.to_str())
+                && is_image_extension(ext)
+                && let Some(stem) = path.file_stem()
+            {
+                let webp_name = format!("{}.webp", stem.to_string_lossy());
+                let url_encoded = url_encode(&webp_name);
+                images.push(format!("./{}/images/{}", category, url_encoded));
+            }
+        }
+    }
 
-	images.sort();
-	images
-}
-
-fn is_image_extension(ext: &str) -> bool {
-	matches!(ext, "png" | "jpg" | "jpeg" | "PNG" | "JPG" | "JPEG")
+    images.sort();
+    images
 }
 
 fn convert_and_copy_images(source_dir: &Path, dest_dir: &Path) {
-	if !source_dir.exists() {
-		return;
-	}
+    if !source_dir.exists() {
+        return;
+    }
 
-	if fs::create_dir_all(dest_dir).is_err() {
-		println!("Failed to create directory: {:?}", dest_dir);
-		return;
-	}
+    if fs::create_dir_all(dest_dir).is_err() {
+        println!("Failed to create directory: {:?}", dest_dir);
+        return;
+    }
 
-	if let Ok(entries) = fs::read_dir(source_dir) {
-		for entry in entries.flatten() {
-			let path = entry.path();
-			if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
-				if is_image_extension(ext) {
-					if let Some(stem) = path.file_stem() {
-						let webp_name = format!("{}.webp", stem.to_string_lossy());
-						let dest_file = dest_dir.join(&webp_name);
+    if let Ok(entries) = fs::read_dir(source_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if let Some(ext) = path.extension().and_then(|e| e.to_str())
+                && is_image_extension(ext)
+                && let Some(stem) = path.file_stem()
+            {
+                let webp_name = format!("{}.webp", stem.to_string_lossy());
+                let dest_file = dest_dir.join(&webp_name);
 
-						// Skip if already converted (GitHub Actions caches docs/)
-						if dest_file.exists() {
-							println!("Skipping (cached): {}", webp_name);
-							continue;
-						}
+                // Skip if already converted (GitHub Actions caches docs/)
+                if dest_file.exists() {
+                    println!("Skipping (cached): {}", webp_name);
+                    continue;
+                }
 
-						let open_result = image::ImageReader::open(&path)
-							.ok()
-							.and_then(|r| r.with_guessed_format().ok())
-							.and_then(|r| r.decode().ok());
+                let open_result = image::ImageReader::open(&path)
+                    .ok()
+                    .and_then(|r| r.with_guessed_format().ok())
+                    .and_then(|r| r.decode().ok());
 
-						match open_result {
-							Some(img) => {
-								let img = if img.width() > MAX_IMAGE_DIMENSION || img.height() > MAX_IMAGE_DIMENSION {
-									img.resize(MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, image::imageops::FilterType::Lanczos3)
-								} else {
-									img
-								};
-								let webp_data = if img.color().has_alpha() {
-									let rgba = img.to_rgba8();
-									let (w, h) = rgba.dimensions();
-									webp::Encoder::from_rgba(rgba.as_raw(), w, h).encode(WEBP_QUALITY)
-								} else {
-									let rgb = img.to_rgb8();
-									let (w, h) = rgb.dimensions();
-									webp::Encoder::from_rgb(rgb.as_raw(), w, h).encode(WEBP_QUALITY)
-								};
-								if let Err(e) = std::fs::write(&dest_file, &*webp_data) {
-									println!("Failed to write {:?}: {}", dest_file, e);
-								} else {
-									println!("Converted to WebP: {}", webp_name);
-								}
-							}
-							None => println!("Failed to open image {:?}", path),
-						}
-					}
-				}
-			}
-		}
-	}
+                match open_result {
+                    Some(img) => {
+                        let img = if img.width() > MAX_IMAGE_DIMENSION
+                            || img.height() > MAX_IMAGE_DIMENSION
+                        {
+                            img.resize(
+                                MAX_IMAGE_DIMENSION,
+                                MAX_IMAGE_DIMENSION,
+                                image::imageops::FilterType::Lanczos3,
+                            )
+                        } else {
+                            img
+                        };
+                        let webp_data = if img.color().has_alpha() {
+                            let rgba = img.to_rgba8();
+                            let (w, h) = rgba.dimensions();
+                            webp::Encoder::from_rgba(rgba.as_raw(), w, h).encode(WEBP_QUALITY)
+                        } else {
+                            let rgb = img.to_rgb8();
+                            let (w, h) = rgb.dimensions();
+                            webp::Encoder::from_rgb(rgb.as_raw(), w, h).encode(WEBP_QUALITY)
+                        };
+                        if let Err(e) = std::fs::write(&dest_file, &*webp_data) {
+                            println!("Failed to write {:?}: {}", dest_file, e);
+                        } else {
+                            println!("Converted to WebP: {}", webp_name);
+                        }
+                    }
+                    None => println!("Failed to open image {:?}", path),
+                }
+            }
+        }
+    }
 }
 
 struct CategoryData {
-	title: String,
-	subtitle: String,
-	images: Vec<String>,
-	links: HashMap<String, String>,
-	background: Option<String>,
+    title: String,
+    subtitle: String,
+    images: Vec<String>,
+    links: HashMap<String, String>,
+    background: Option<String>,
 }
 
 fn discover_modeling_categories(docs_dir: &Path) -> Vec<(String, CategoryData)> {
-	let mut categories = Vec::new();
-	let modeling_dir = Path::new("templates").join("modeling");
+    let mut categories = Vec::new();
+    let modeling_dir = Path::new("templates").join("modeling");
 
-	if !modeling_dir.exists() {
-		return categories;
-	}
+    if !modeling_dir.exists() {
+        return categories;
+    }
 
-	if let Ok(entries) = fs::read_dir(&modeling_dir) {
-		for entry in entries.flatten() {
-			if entry.path().is_dir() {
-				let category_name = entry.file_name().to_str().unwrap_or("").to_string();
+    if let Ok(entries) = fs::read_dir(&modeling_dir) {
+        for entry in entries.flatten() {
+            if entry.path().is_dir() {
+                let category_name = entry.file_name().to_str().unwrap_or("").to_string();
 
-				let images_dir = entry.path().join("images");
-				if !images_dir.exists() {
-					continue;
-				}
+                let images_dir = entry.path().join("images");
+                if !images_dir.exists() {
+                    continue;
+                }
 
-				let title = {
-					let mut chars = category_name.chars();
-					match chars.next() {
-						None => continue,
-						Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
-					}
-				};
+                let title = {
+                    let mut chars = category_name.chars();
+                    match chars.next() {
+                        None => continue,
+                        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                    }
+                };
 
-				let subtitle_file = entry.path().join("subtitle.txt");
-				let subtitle = if subtitle_file.exists() {
-					fs::read_to_string(&subtitle_file)
-						.map(|s| s.trim().to_string())
-						.unwrap_or_else(|_| format!("Professional {} photography", category_name))
-				} else {
-					format!("Professional {} photography", category_name)
-				};
+                let subtitle_file = entry.path().join("subtitle.txt");
+                let subtitle = if subtitle_file.exists() {
+                    fs::read_to_string(&subtitle_file)
+                        .map(|s| s.trim().to_string())
+                        .unwrap_or_else(|_| format!("Professional {} photography", category_name))
+                } else {
+                    format!("Professional {} photography", category_name)
+                };
 
-				let docs_images_dir = docs_dir.join("modeling").join(&category_name).join("images");
-				convert_and_copy_images(&images_dir, &docs_images_dir);
+                let docs_images_dir = docs_dir
+                    .join("modeling")
+                    .join(&category_name)
+                    .join("images");
+                convert_and_copy_images(&images_dir, &docs_images_dir);
 
-				let images = get_image_list_for_web(&images_dir, &category_name);
-				let links = read_links_file(&images_dir);
+                let images = get_image_list_for_web(&images_dir, &category_name);
+                let links = read_links_file(&images_dir);
 
-				// Check for and copy background image
-				let background_dir = entry.path().join("Background");
-				let has_bg = ["bkgrnd.png", "bkgrnd.jpg", "bkgrnd.jpeg", "bkgrnd.PNG", "bkgrnd.JPG"]
-					.iter()
-					.any(|f| background_dir.join(f).exists());
-				let background = if has_bg {
-					let docs_bg_dir = docs_dir.join("modeling").join(&category_name).join("Background");
-					create_dir_if_not_exists(&docs_bg_dir);
-					convert_and_copy_images(&background_dir, &docs_bg_dir);
-					Some(format!("./{}/Background/bkgrnd.webp", category_name))
-				} else {
-					None
-				};
+                // Check for and copy background image
+                let background_dir = entry.path().join("Background");
+                let has_bg = [
+                    "bkgrnd.png",
+                    "bkgrnd.jpg",
+                    "bkgrnd.jpeg",
+                    "bkgrnd.PNG",
+                    "bkgrnd.JPG",
+                ]
+                .iter()
+                .any(|f| background_dir.join(f).exists());
+                let background = if has_bg {
+                    let docs_bg_dir = docs_dir
+                        .join("modeling")
+                        .join(&category_name)
+                        .join("Background");
+                    create_dir_if_not_exists(&docs_bg_dir);
+                    convert_and_copy_images(&background_dir, &docs_bg_dir);
+                    Some(format!("./{}/Background/bkgrnd.webp", category_name))
+                } else {
+                    None
+                };
 
-				categories.push((category_name, CategoryData {
-					title,
-					subtitle,
-					images,
-					links,
-					background,
-				}));
-			}
-		}
-	}
+                categories.push((
+                    category_name,
+                    CategoryData {
+                        title,
+                        subtitle,
+                        images,
+                        links,
+                        background,
+                    },
+                ));
+            }
+        }
+    }
 
-	categories.sort_by(|a, b| a.0.cmp(&b.0));
-	categories
+    categories.sort_by(|a, b| a.0.cmp(&b.0));
+    categories
 }
 
 fn generate_categories_json(categories: &[(String, CategoryData)]) -> String {
-	let mut json_parts = Vec::new();
+    let mut json_parts = Vec::new();
 
-	for (key, data) in categories {
-		let images_json: Vec<String> = data.images.iter().map(|img| format!("\"{}\"", img)).collect();
-		let escaped_subtitle = data.subtitle
-			.replace("\\", "\\\\")
-			.replace("\"", "\\\"")
-			.replace("\n", " ")
-			.replace("\r", "");
+    for (key, data) in categories {
+        let images_json: Vec<String> = data
+            .images
+            .iter()
+            .map(|img| format!("\"{}\"", img))
+            .collect();
+        let escaped_subtitle = data
+            .subtitle
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", " ")
+            .replace("\r", "");
 
-		let links_json: Vec<String> = data.links.iter()
-			.map(|(k, v)| format!("\"{}\": \"{}\"", k, v.replace("\"", "\\\"")))
-			.collect();
+        let links_json: Vec<String> = data
+            .links
+            .iter()
+            .map(|(k, v)| format!("\"{}\": \"{}\"", k, v.replace("\"", "\\\"")))
+            .collect();
 
-		let background_json = match &data.background {
-			Some(bg) => format!(", \"background\": \"{}\"", bg),
-			None => String::new(),
-		};
+        let background_json = match &data.background {
+            Some(bg) => format!(", \"background\": \"{}\"", bg),
+            None => String::new(),
+        };
 
-		json_parts.push(format!(
+        json_parts.push(format!(
 			"\"{}\": {{\"title\": \"{}\", \"subtitle\": \"{}\", \"images\": [{}], \"links\": {{{}}}{}}}",
 			key,
 			data.title,
@@ -315,336 +345,389 @@ fn generate_categories_json(categories: &[(String, CategoryData)]) -> String {
 			links_json.join(", "),
 			background_json
 		));
-	}
+    }
 
-	format!("{{{}}}", json_parts.join(", "))
+    format!("{{{}}}", json_parts.join(", "))
 }
 
-fn generate_modeling_page(content: &str, categories: &[(String, CategoryData)], version: &str) -> String {
-	let categories_json = generate_categories_json(categories);
-	let updated_content = content.replace("{{CATEGORIES_JSON}}", &categories_json);
+fn generate_modeling_page(
+    content: &str,
+    categories: &[(String, CategoryData)],
+    version: &str,
+) -> String {
+    let categories_json = generate_categories_json(categories);
+    let updated_content = content.replace("{{CATEGORIES_JSON}}", &categories_json);
 
-	let base_template = include_str!("../templates/base.html");
-	let mut final_html = base_template
-		.replace("{{TITLE}}", "Modeling Portfolio")
-		.replace("{{CONTENT}}", &updated_content);
+    let base_template = include_str!("../templates/base.html");
+    let mut final_html = base_template
+        .replace("{{TITLE}}", "Modeling Portfolio")
+        .replace("{{CONTENT}}", &updated_content);
 
-	// Update navigation links for GitHub Pages (modeling page)
-	final_html = apply_github_pages_nav_links(final_html);
+    // Update navigation links for GitHub Pages (modeling page)
+    final_html = apply_github_pages_nav_links(final_html);
 
-	// Update CSS path for GitHub Pages deployment with cache busting
-	final_html = final_html.replace(
-		r#"href="/templates/styles.css""#,
-		&format!(r#"href="/styles.css?v={}""#, version)
-	);
+    // Update CSS path for GitHub Pages deployment with cache busting
+    final_html = final_html.replace(
+        r#"href="/templates/styles.css""#,
+        &format!(r#"href="/styles.css?v={}""#, version),
+    );
 
-	final_html
+    final_html
 }
 
 fn create_dir_if_not_exists(path: &Path) {
-	if !path.exists() {
-		fs::create_dir_all(path).unwrap_or_else(|_| panic!("Failed to create directory: {:?}", path));
-	}
+    if !path.exists() {
+        fs::create_dir_all(path)
+            .unwrap_or_else(|_| panic!("Failed to create directory: {:?}", path));
+    }
 }
 
 fn main() {
-	let docs_dir = Path::new("docs");
-	let version = get_git_hash();
-	println!("Building with version: {}", version);
+    let docs_dir = Path::new("docs");
+    let version = get_git_hash();
+    println!("Building with version: {}", version);
 
-	// docs/ is preserved between runs; GitHub Actions caches it so WebP images
-	// are not reconverted. Only HTML/CSS files are overwritten each run.
+    // docs/ is preserved between runs; GitHub Actions caches it so WebP images
+    // are not reconverted. Only HTML/CSS files are overwritten each run.
 
-	create_dir_if_not_exists(docs_dir);
+    create_dir_if_not_exists(docs_dir);
 
-	// Copy CSS file from templates to docs
-	let templates_css = Path::new("templates").join("styles.css");
-	let docs_css = docs_dir.join("styles.css");
+    // Copy CSS file from templates to docs
+    let templates_css = Path::new("templates").join("styles.css");
+    let docs_css = docs_dir.join("styles.css");
 
-	if templates_css.exists() {
-		if let Err(e) = fs::copy(&templates_css, &docs_css) {
-			println!("Failed to copy CSS file: {}", e);
-		} else {
-			println!("Copied styles.css to docs directory");
-		}
-	}
+    if templates_css.exists() {
+        if let Err(e) = fs::copy(&templates_css, &docs_css) {
+            println!("Failed to copy CSS file: {}", e);
+        } else {
+            println!("Copied styles.css to docs directory");
+        }
+    }
 
-	// Copy global images folder from templates to docs
-	let templates_global_images = Path::new("templates").join("global-images");
-	let docs_global_images = docs_dir.join("global-images");
+    // Copy global images folder from templates to docs
+    let templates_global_images = Path::new("templates").join("global-images");
+    let docs_global_images = docs_dir.join("global-images");
 
-	if templates_global_images.exists() {
-		create_dir_if_not_exists(&docs_global_images);
-		convert_and_copy_images(&templates_global_images, &docs_global_images);
-	}
+    if templates_global_images.exists() {
+        create_dir_if_not_exists(&docs_global_images);
+        convert_and_copy_images(&templates_global_images, &docs_global_images);
+    }
 
-	// Create modeling subdirectory
-	create_dir_if_not_exists(&docs_dir.join("modeling"));
+    // Create modeling subdirectory
+    create_dir_if_not_exists(&docs_dir.join("modeling"));
 
-	// Discover modeling categories and copy their images
-	let categories = discover_modeling_categories(docs_dir);
-	println!("\nModeling categories discovered:");
-	for (name, data) in &categories {
-		println!("  - {} ({} images)", name, data.images.len());
-	}
+    // Discover modeling categories and copy their images
+    let categories = discover_modeling_categories(docs_dir);
+    println!("\nModeling categories discovered:");
+    for (name, data) in &categories {
+        println!("  - {} ({} images)", name, data.images.len());
+    }
 
-	// Generate home page
-	let home_content = include_str!("../templates/index.html");
-	let home_html = generate_page("Home", home_content, &version);
-	let home_file_path = docs_dir.join("index.html");
-	fs::write(&home_file_path, home_html).expect("Failed to write index.html");
-	println!("Generated index.html");
+    // Generate home page
+    let home_content = include_str!("../templates/index.html");
+    let home_html = generate_page("Home", home_content, &version);
+    let home_file_path = docs_dir.join("index.html");
+    fs::write(&home_file_path, home_html).expect("Failed to write index.html");
+    println!("Generated index.html");
 
-	// Generate unified modeling page
-	let modeling_content = include_str!("../templates/modeling/modeling.html");
-	let modeling_html = generate_modeling_page(modeling_content, &categories, &version);
-	let modeling_path = docs_dir.join("modeling").join("index.html");
-	fs::write(&modeling_path, modeling_html).expect("Failed to write modeling/index.html");
-	println!("Generated modeling/index.html");
+    // Generate unified modeling page
+    let modeling_content = include_str!("../templates/modeling/modeling.html");
+    let modeling_html = generate_modeling_page(modeling_content, &categories, &version);
+    let modeling_path = docs_dir.join("modeling").join("index.html");
+    fs::write(&modeling_path, modeling_html).expect("Failed to write modeling/index.html");
+    println!("Generated modeling/index.html");
 
-	// Generate bio page
-	let bio_dir = docs_dir.join("bio");
-	create_dir_if_not_exists(&bio_dir);
+    // Generate bio page
+    let bio_dir = docs_dir.join("bio");
+    create_dir_if_not_exists(&bio_dir);
 
-	// Copy bio background image
-	let bio_bg_src = Path::new("templates").join("bio").join("background");
-	let bio_bg_dest = bio_dir.join("background");
-	if bio_bg_src.exists() {
-		create_dir_if_not_exists(&bio_bg_dest);
-		convert_and_copy_images(&bio_bg_src, &bio_bg_dest);
-	}
+    // Copy bio background image
+    let bio_bg_src = Path::new("templates").join("bio").join("background");
+    let bio_bg_dest = bio_dir.join("background");
+    if bio_bg_src.exists() {
+        create_dir_if_not_exists(&bio_bg_dest);
+        convert_and_copy_images(&bio_bg_src, &bio_bg_dest);
+    }
 
-	let bio_path = Path::new("templates").join("bio").join("bio.html");
-	if bio_path.exists() {
-		match fs::read_to_string(&bio_path) {
-			Ok(content) => {
-				// Update background image path for GitHub Pages
-				let updated_content = content.replace(
-					"url('/templates/bio/background/bkgrnd.png')",
-					"url('./background/bkgrnd.webp')"
-				);
-				let html = generate_page("Bio", &updated_content, &version);
-				let file_path = bio_dir.join("index.html");
-				fs::write(&file_path, html).expect("Failed to write bio/index.html");
-				println!("Generated bio/index.html");
-			},
-			Err(e) => {
-				println!("Failed to read bio template: {}", e);
-			}
-		}
-	}
+    let bio_path = Path::new("templates").join("bio").join("bio.html");
+    if bio_path.exists() {
+        match fs::read_to_string(&bio_path) {
+            Ok(content) => {
+                // Update background image path for GitHub Pages
+                let updated_content = content.replace(
+                    "url('/templates/bio/background/bkgrnd.png')",
+                    "url('./background/bkgrnd.webp')",
+                );
+                let html = generate_page("Bio", &updated_content, &version);
+                let file_path = bio_dir.join("index.html");
+                fs::write(&file_path, html).expect("Failed to write bio/index.html");
+                println!("Generated bio/index.html");
+            }
+            Err(e) => {
+                println!("Failed to read bio template: {}", e);
+            }
+        }
+    }
 
-	// Generate music page
-	let music_dir = docs_dir.join("music");
-	create_dir_if_not_exists(&music_dir);
+    // Generate music page
+    let music_dir = docs_dir.join("music");
+    create_dir_if_not_exists(&music_dir);
 
-	// Copy music background image
-	let music_bg_src = Path::new("templates").join("music").join("background");
-	let music_bg_dest = music_dir.join("background");
-	if music_bg_src.exists() {
-		create_dir_if_not_exists(&music_bg_dest);
-		convert_and_copy_images(&music_bg_src, &music_bg_dest);
-	}
+    // Copy music background image
+    let music_bg_src = Path::new("templates").join("music").join("background");
+    let music_bg_dest = music_dir.join("background");
+    if music_bg_src.exists() {
+        create_dir_if_not_exists(&music_bg_dest);
+        convert_and_copy_images(&music_bg_src, &music_bg_dest);
+    }
 
-	let music_path = Path::new("templates").join("music").join("music.html");
-	if music_path.exists() {
-		match fs::read_to_string(&music_path) {
-			Ok(content) => {
-				// Generate YouTube embeds
-				let video_ids = read_youtube_links("music");
-				let embeds_html = generate_youtube_embeds(&video_ids);
-				let content = content.replace("{{YOUTUBE_EMBEDS}}", &embeds_html);
+    let music_path = Path::new("templates").join("music").join("music.html");
+    if music_path.exists() {
+        match fs::read_to_string(&music_path) {
+            Ok(content) => {
+                // Generate YouTube embeds
+                let video_ids = read_youtube_links("music");
+                let embeds_html = generate_youtube_embeds(&video_ids);
+                let content = content.replace("{{YOUTUBE_EMBEDS}}", &embeds_html);
 
-				// Update background image path for GitHub Pages
-				let updated_content = content.replace(
-					"url('/templates/music/background/bkgrnd.png')",
-					"url('./background/bkgrnd.webp')"
-				);
-				let html = generate_page("Music", &updated_content, &version);
-				let file_path = music_dir.join("index.html");
-				fs::write(&file_path, html).expect("Failed to write music/index.html");
-				println!("Generated music/index.html");
-			},
-			Err(e) => {
-				println!("Failed to read music template: {}", e);
-			}
-		}
-	}
+                // Update background image path for GitHub Pages
+                let updated_content = content.replace(
+                    "url('/templates/music/background/bkgrnd.png')",
+                    "url('./background/bkgrnd.webp')",
+                );
+                let html = generate_page("Music", &updated_content, &version);
+                let file_path = music_dir.join("index.html");
+                fs::write(&file_path, html).expect("Failed to write music/index.html");
+                println!("Generated music/index.html");
+            }
+            Err(e) => {
+                println!("Failed to read music template: {}", e);
+            }
+        }
+    }
 
-	// TODO: Re-add contact page - Generate static contact page
-	// Original implementation commented out below:
-	/*
-	let contact_path = Path::new("templates").join("contact").join("contact.html");
-	if contact_path.exists() {
-		match fs::read_to_string(&contact_path) {
-			Ok(content) => {
-				let html = generate_page("Contact", &content, &version);
-				let file_path = contact_dir.join("index.html");
-				fs::write(&file_path, html).expect("Failed to write contact/index.html");
-				println!("Generated contact/index.html");
-			},
-			Err(e) => {
-				println!("Failed to read contact template: {}", e);
-			}
-		}
-	}
-	*/
+    // TODO: Re-add contact page - Generate static contact page
+    // Original implementation commented out below:
+    /*
+    let contact_path = Path::new("templates").join("contact").join("contact.html");
+    if contact_path.exists() {
+        match fs::read_to_string(&contact_path) {
+            Ok(content) => {
+                let html = generate_page("Contact", &content, &version);
+                let file_path = contact_dir.join("index.html");
+                fs::write(&file_path, html).expect("Failed to write contact/index.html");
+                println!("Generated contact/index.html");
+            },
+            Err(e) => {
+                println!("Failed to read contact template: {}", e);
+            }
+        }
+    }
+    */
 
-	// Generate under construction contact page
-	let contact_dir = docs_dir.join("contact");
-	create_dir_if_not_exists(&contact_dir);
+    // Generate under construction contact page
+    let contact_dir = docs_dir.join("contact");
+    create_dir_if_not_exists(&contact_dir);
 
-	let contact_construction_path = Path::new("templates").join("contact").join("contact-under-construction.html");
-	if contact_construction_path.exists() {
-		match fs::read_to_string(&contact_construction_path) {
-			Ok(content) => {
-				let html = generate_page("Contact - Under Construction", &content, &version);
-				let file_path = contact_dir.join("index.html");
-				fs::write(&file_path, html).expect("Failed to write contact/index.html");
-				println!("Generated contact/index.html (under construction)");
-			},
-			Err(e) => {
-				println!("Failed to read contact under construction template: {}", e);
-			}
-		}
-	}
+    let contact_construction_path = Path::new("templates")
+        .join("contact")
+        .join("contact-under-construction.html");
+    if contact_construction_path.exists() {
+        match fs::read_to_string(&contact_construction_path) {
+            Ok(content) => {
+                let html = generate_page("Contact - Under Construction", &content, &version);
+                let file_path = contact_dir.join("index.html");
+                fs::write(&file_path, html).expect("Failed to write contact/index.html");
+                println!("Generated contact/index.html (under construction)");
+            }
+            Err(e) => {
+                println!("Failed to read contact under construction template: {}", e);
+            }
+        }
+    }
 
-	// Generate acting page
-	let acting_dir = docs_dir.join("acting");
-	create_dir_if_not_exists(&acting_dir);
+    // Generate acting page
+    let acting_dir = docs_dir.join("acting");
+    create_dir_if_not_exists(&acting_dir);
 
-	// Copy acting background image
-	let acting_bg_src = Path::new("templates").join("acting").join("Background");
-	let acting_bg_dest = acting_dir.join("Background");
-	if acting_bg_src.exists() {
-		create_dir_if_not_exists(&acting_bg_dest);
-		convert_and_copy_images(&acting_bg_src, &acting_bg_dest);
-	}
+    // Copy acting background image
+    let acting_bg_src = Path::new("templates").join("acting").join("Background");
+    let acting_bg_dest = acting_dir.join("Background");
+    if acting_bg_src.exists() {
+        create_dir_if_not_exists(&acting_bg_dest);
+        convert_and_copy_images(&acting_bg_src, &acting_bg_dest);
+    }
 
-	let acting_path = Path::new("templates").join("acting").join("acting.html");
-	if acting_path.exists() {
-		match fs::read_to_string(&acting_path) {
-			Ok(content) => {
-				// Generate YouTube embeds
-				let video_ids = read_youtube_links("acting");
-				let embeds_html = generate_youtube_embeds(&video_ids);
-				let content = content.replace("{{ACTING_YOUTUBE_EMBEDS}}", &embeds_html);
+    let acting_path = Path::new("templates").join("acting").join("acting.html");
+    if acting_path.exists() {
+        match fs::read_to_string(&acting_path) {
+            Ok(content) => {
+                // Generate YouTube embeds
+                let video_ids = read_youtube_links("acting");
+                let embeds_html = generate_youtube_embeds(&video_ids);
+                let content = content.replace("{{ACTING_YOUTUBE_EMBEDS}}", &embeds_html);
 
-				// Update background image path for GitHub Pages
-				let updated_content = content.replace(
-					"url('/templates/acting/Background/bckgrnd.png')",
-					"url('./Background/bckgrnd.webp')"
-				);
-				let html = generate_page("Acting", &updated_content, &version);
-				let file_path = acting_dir.join("index.html");
-				fs::write(&file_path, html).expect("Failed to write acting/index.html");
-				println!("Generated acting/index.html");
-			},
-			Err(e) => {
-				println!("Failed to read acting template: {}", e);
-			}
-		}
-	}
+                // Update background image path for GitHub Pages
+                let updated_content = content.replace(
+                    "url('/templates/acting/Background/bckgrnd.png')",
+                    "url('./Background/bckgrnd.webp')",
+                );
+                let html = generate_page("Acting", &updated_content, &version);
+                let file_path = acting_dir.join("index.html");
+                fs::write(&file_path, html).expect("Failed to write acting/index.html");
+                println!("Generated acting/index.html");
+            }
+            Err(e) => {
+                println!("Failed to read acting template: {}", e);
+            }
+        }
+    }
 
-	// Generate reviews page
-	let reviews_dir = docs_dir.join("reviews");
-	create_dir_if_not_exists(&reviews_dir);
+    // Generate reviews page
+    let reviews_dir = docs_dir.join("reviews");
+    create_dir_if_not_exists(&reviews_dir);
 
-	let reviews_path = Path::new("templates").join("reviews").join("reviews.html");
-	if reviews_path.exists() {
-		match fs::read_to_string(&reviews_path) {
-			Ok(mut content) => {
-				let testimonials = read_testimonials();
-				let testimonials_html = generate_testimonials_html(&testimonials);
-				content = content.replace("{{TESTIMONIALS_HTML}}", &testimonials_html);
-				let html = generate_page("Reviews", &content, &version);
-				let file_path = reviews_dir.join("index.html");
-				fs::write(&file_path, html).expect("Failed to write reviews/index.html");
-				println!("Generated reviews/index.html");
-			},
-			Err(e) => {
-				println!("Failed to read reviews template: {}", e);
-			}
-		}
-	}
+    let reviews_path = Path::new("templates").join("reviews").join("reviews.html");
+    if reviews_path.exists() {
+        match fs::read_to_string(&reviews_path) {
+            Ok(mut content) => {
+                let testimonials = read_testimonials();
+                let testimonials_html = generate_testimonials_html(&testimonials);
+                content = content.replace("{{TESTIMONIALS_HTML}}", &testimonials_html);
+                let html = generate_page("Reviews", &content, &version);
+                let file_path = reviews_dir.join("index.html");
+                fs::write(&file_path, html).expect("Failed to write reviews/index.html");
+                println!("Generated reviews/index.html");
+            }
+            Err(e) => {
+                println!("Failed to read reviews template: {}", e);
+            }
+        }
+    }
 
-	// Generate behind-the-scenes page
-	let bts_dir = docs_dir.join("behind-the-scenes");
-	create_dir_if_not_exists(&bts_dir);
+    // Generate behind-the-scenes page
+    let bts_dir = docs_dir.join("behind-the-scenes");
+    create_dir_if_not_exists(&bts_dir);
 
-	// Copy BTS images
-	let bts_images_src = Path::new("templates").join("Behind the scenes").join("images");
-	let bts_images_dest = bts_dir.join("images");
-	if bts_images_src.exists() {
-		create_dir_if_not_exists(&bts_images_dest);
-		convert_and_copy_images(&bts_images_src, &bts_images_dest);
-	}
+    // Copy BTS images
+    let bts_images_src = Path::new("templates")
+        .join("Behind the scenes")
+        .join("images");
+    let bts_images_dest = bts_dir.join("images");
+    if bts_images_src.exists() {
+        create_dir_if_not_exists(&bts_images_dest);
+        convert_and_copy_images(&bts_images_src, &bts_images_dest);
+    }
 
-	// Copy BTS background image
-	let bts_bg_src = Path::new("templates").join("Behind the scenes").join("background");
-	let bts_bg_dest = bts_dir.join("background");
-	if bts_bg_src.exists() {
-		create_dir_if_not_exists(&bts_bg_dest);
-		convert_and_copy_images(&bts_bg_src, &bts_bg_dest);
-	}
+    // Copy BTS background image
+    let bts_bg_src = Path::new("templates")
+        .join("Behind the scenes")
+        .join("background");
+    let bts_bg_dest = bts_dir.join("background");
+    if bts_bg_src.exists() {
+        create_dir_if_not_exists(&bts_bg_dest);
+        convert_and_copy_images(&bts_bg_src, &bts_bg_dest);
+    }
 
-	let bts_path = Path::new("templates").join("Behind the scenes").join("behind-the-scenes.html");
-	if bts_path.exists() {
-		match fs::read_to_string(&bts_path) {
-			Ok(content) => {
-				// Read subtitle
-				let subtitle_file = Path::new("templates").join("Behind the scenes").join("subtitle.txt");
-				let subtitle = if subtitle_file.exists() {
-					fs::read_to_string(&subtitle_file)
-						.unwrap_or_else(|_| "Behind the scenes photography".to_string())
-						.trim()
-						.to_string()
-				} else {
-					"Behind the scenes photography".to_string()
-				};
+    let bts_path = Path::new("templates")
+        .join("Behind the scenes")
+        .join("behind-the-scenes.html");
+    if bts_path.exists() {
+        match fs::read_to_string(&bts_path) {
+            Ok(content) => {
+                // Read subtitle
+                let subtitle_file = Path::new("templates")
+                    .join("Behind the scenes")
+                    .join("subtitle.txt");
+                let subtitle = if subtitle_file.exists() {
+                    fs::read_to_string(&subtitle_file)
+                        .unwrap_or_else(|_| "Behind the scenes photography".to_string())
+                        .trim()
+                        .to_string()
+                } else {
+                    "Behind the scenes photography".to_string()
+                };
 
-				// Get images list
-				let mut images = Vec::new();
-				if bts_images_src.exists() {
-					if let Ok(entries) = fs::read_dir(&bts_images_src) {
-					for entry in entries.flatten() {
-							let path = entry.path();
-							if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
-								if is_image_extension(ext) {
-									if let Some(stem) = path.file_stem() {
-										let webp_name = format!("{}.webp", stem.to_string_lossy());
-										let url_encoded = url_encode(&webp_name);
-										images.push(format!("./images/{}", url_encoded));
-									}
-								}
-							}
-						}
-					}
-				}
-				images.sort();
+                // Get images list
+                let mut images = Vec::new();
+                if bts_images_src.exists()
+                    && let Ok(entries) = fs::read_dir(&bts_images_src)
+                {
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if let Some(ext) = path.extension().and_then(|e| e.to_str())
+                            && is_image_extension(ext)
+                            && let Some(stem) = path.file_stem()
+                        {
+                            let webp_name = format!("{}.webp", stem.to_string_lossy());
+                            let url_encoded = url_encode(&webp_name);
+                            images.push(format!("./images/{}", url_encoded));
+                        }
+                    }
+                }
+                images.sort();
 
-				let images_json: Vec<String> = images.iter().map(|img| format!("\"{}\"", img)).collect();
-				let images_json_str = format!("[{}]", images_json.join(", "));
+                let images_json: Vec<String> =
+                    images.iter().map(|img| format!("\"{}\"", img)).collect();
+                let images_json_str = format!("[{}]", images_json.join(", "));
 
-				// Update background image path for GitHub Pages
-				let updated_content = content
-					.replace("{{BTS_IMAGES_JSON}}", &images_json_str)
-					.replace("{{BTS_SUBTITLE}}", &subtitle)
-					.replace(
-						"url('/templates/Behind the scenes/background/bkgrnd.png')",
-						"url('./background/bkgrnd.webp')"
-					);
+                // Update background image path for GitHub Pages
+                let updated_content = content
+                    .replace("{{BTS_IMAGES_JSON}}", &images_json_str)
+                    .replace("{{BTS_SUBTITLE}}", &subtitle)
+                    .replace(
+                        "url('/templates/Behind the scenes/background/bkgrnd.png')",
+                        "url('./background/bkgrnd.webp')",
+                    );
 
-				let html = generate_page("Behind the Scenes", &updated_content, &version);
-				let file_path = bts_dir.join("index.html");
-				fs::write(&file_path, html).expect("Failed to write behind-the-scenes/index.html");
-				println!("Generated behind-the-scenes/index.html");
-			},
-			Err(e) => {
-				println!("Failed to read behind-the-scenes template: {}", e);
-			}
-		}
-	}
+                let html = generate_page("Behind the Scenes", &updated_content, &version);
+                let file_path = bts_dir.join("index.html");
+                fs::write(&file_path, html).expect("Failed to write behind-the-scenes/index.html");
+                println!("Generated behind-the-scenes/index.html");
+            }
+            Err(e) => {
+                println!("Failed to read behind-the-scenes template: {}", e);
+            }
+        }
+    }
 
-	println!("\nStatic files generated successfully!");
+    // Generate dance page (under construction)
+    let dance_dir = docs_dir.join("dance");
+    create_dir_if_not_exists(&dance_dir);
+
+    let dance_path = Path::new("templates")
+        .join("dance")
+        .join("dance-under-construction.html");
+    if dance_path.exists() {
+        match fs::read_to_string(&dance_path) {
+            Ok(content) => {
+                let html = generate_page("Dance - Under Construction", &content, &version);
+                let file_path = dance_dir.join("index.html");
+                fs::write(&file_path, html).expect("Failed to write dance/index.html");
+                println!("Generated dance/index.html (under construction)");
+            }
+            Err(e) => println!("Failed to read dance template: {}", e),
+        }
+    }
+
+    // Generate arts page (under construction)
+    let arts_dir = docs_dir.join("arts");
+    create_dir_if_not_exists(&arts_dir);
+
+    let arts_path = Path::new("templates")
+        .join("arts")
+        .join("arts-under-construction.html");
+    if arts_path.exists() {
+        match fs::read_to_string(&arts_path) {
+            Ok(content) => {
+                let html = generate_page("Arts - Under Construction", &content, &version);
+                let file_path = arts_dir.join("index.html");
+                fs::write(&file_path, html).expect("Failed to write arts/index.html");
+                println!("Generated arts/index.html (under construction)");
+            }
+            Err(e) => println!("Failed to read arts template: {}", e),
+        }
+    }
+
+    println!("\nStatic files generated successfully!");
 }
