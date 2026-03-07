@@ -14,7 +14,9 @@
       "Bash(cmd /c \"dir /s /b Z:\\\\EternalCataclysmStudios\\\\Website-test\\\\templates\\\\modeling\\\\*background*\")",
       "Bash(ls:*)",
       "Bash(python3:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(du:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

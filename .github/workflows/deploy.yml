@@ -46,7 +46,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: docs/
-          key: docs-webp-v1
+          key: docs-webp-v2
           restore-keys: docs-webp-
 
       - name: Setup Rust

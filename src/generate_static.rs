@@ -1,4 +1,5 @@
-use image::ImageFormat;
+const MAX_IMAGE_DIMENSION: u32 = 2048;
+const WEBP_QUALITY: f32 = 82.0;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
@@ -178,8 +179,22 @@ fn convert_and_copy_images(source_dir: &Path, dest_dir: &Path) {
 
 						match open_result {
 							Some(img) => {
-								if let Err(e) = img.save_with_format(&dest_file, ImageFormat::WebP) {
-									println!("Failed to convert {:?}: {}", path, e);
+								let img = if img.width() > MAX_IMAGE_DIMENSION || img.height() > MAX_IMAGE_DIMENSION {
+									img.resize(MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, image::imageops::FilterType::Lanczos3)
+								} else {
+									img
+								};
+								let webp_data = if img.color().has_alpha() {
+									let rgba = img.to_rgba8();
+									let (w, h) = rgba.dimensions();
+									webp::Encoder::from_rgba(rgba.as_raw(), w, h).encode(WEBP_QUALITY)
+								} else {
+									let rgb = img.to_rgb8();
+									let (w, h) = rgb.dimensions();
+									webp::Encoder::from_rgb(rgb.as_raw(), w, h).encode(WEBP_QUALITY)
+								};
+								if let Err(e) = std::fs::write(&dest_file, &*webp_data) {
+									println!("Failed to write {:?}: {}", dest_file, e);
 								} else {
 									println!("Converted to WebP: {}", webp_name);
 								}
