@@ -1,82 +1,12 @@
 use image::ImageFormat;
-use serde::Deserialize;
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
-
-#[derive(Debug, Deserialize)]
-struct Testimonial {
-	quote: String,
-	author: String,
-	title: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct TestimonialsData {
-	testimonials: Vec<Testimonial>,
-}
-
-fn url_encode(input: &str) -> String {
-	input
-		.chars()
-		.map(|c| match c {
-			' ' => "%20".to_string(),
-			'+' => "%2B".to_string(),
-			'#' => "%23".to_string(),
-			'&' => "%26".to_string(),
-			'=' => "%3D".to_string(),
-			'?' => "%3F".to_string(),
-			c if c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '~' => c.to_string(),
-			_ => format!("%{:02X}", c as u8),
-		})
-		.collect()
-}
-
-fn read_testimonials() -> Vec<Testimonial> {
-	let json_path = Path::new("templates").join("reviews").join("reviews.json");
-
-	if json_path.exists() {
-		if let Ok(content) = fs::read_to_string(&json_path) {
-			if let Ok(data) = serde_json::from_str::<TestimonialsData>(&content) {
-				return data.testimonials;
-			}
-		}
-	}
-
-	Vec::new()
-}
-
-fn html_escape(input: &str) -> String {
-	input
-		.replace('&', "&amp;")
-		.replace('<', "&lt;")
-		.replace('>', "&gt;")
-		.replace('"', "&quot;")
-		.replace('\'', "&#39;")
-}
-
-fn generate_testimonials_html(testimonials: &[Testimonial]) -> String {
-	testimonials
-		.iter()
-		.map(|t| {
-			format!(
-				r#"<div class="testimonial-card">
-                <div class="testimonial-text">
-                    <p>{}</p>
-                </div>
-                <div class="testimonial-author">
-                    <span class="author-name">{}</span>
-                    <span class="author-title">{}</span>
-                </div>
-            </div>"#,
-				html_escape(&t.quote),
-				html_escape(&t.author),
-				html_escape(&t.title)
-			)
-		})
-		.collect::<Vec<_>>()
-		.join("\n            ")
-}
+use website_test::shared::{
+	generate_testimonials_html, generate_youtube_embeds, read_links_file, read_testimonials,
+	read_youtube_links, url_encode,
+};
 
 fn get_git_hash() -> String {
 	Command::new("git")
@@ -88,6 +18,42 @@ fn get_git_hash() -> String {
 		.unwrap_or_else(|| "dev".to_string())
 }
 
+fn apply_github_pages_nav_links(html: String) -> String {
+	html
+		.replace(
+			r#"<a href="/" class="nav-item">Home</a>"#,
+			r#"<a href="" class="nav-item">Home</a>"#,
+		)
+		.replace(
+			r#"<a href="/bio/" class="nav-item">Bio</a>"#,
+			r#"<a href="/bio" class="nav-item">Bio</a>"#,
+		)
+		.replace(
+			r#"<a href="/acting/" class="nav-item">Acting</a>"#,
+			r#"<a href="/acting" class="nav-item">Acting</a>"#,
+		)
+		.replace(
+			r#"<a href="/music/" class="nav-item">Music</a>"#,
+			r#"<a href="/music" class="nav-item">Music</a>"#,
+		)
+		.replace(
+			r#"<a href="/modeling/" class="nav-item">Modeling</a>"#,
+			r#"<a href="/modeling" class="nav-item">Modeling</a>"#,
+		)
+		.replace(
+			r#"<a href="/reviews/" class="nav-item">Reviews</a>"#,
+			r#"<a href="/reviews" class="nav-item">Reviews</a>"#,
+		)
+		.replace(
+			r#"<a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>"#,
+			r#"<a href="/behind-the-scenes" class="nav-item">Behind the Scenes</a>"#,
+		)
+		.replace(
+			r#"<a href="/contact/" class="nav-item">Contact</a>"#,
+			r#"<a href="/contact" class="nav-item">Contact</a>"#,
+		)
+}
+
 fn generate_page(title: &str, content: &str, version: &str) -> String {
 	let base_template = include_str!("../templates/base.html");
 	let mut final_html = base_template
@@ -95,38 +61,7 @@ fn generate_page(title: &str, content: &str, version: &str) -> String {
 		.replace("{{CONTENT}}", content);
 
 	// Update navigation links for GitHub Pages (static generation)
-	final_html = final_html.replace(
-		r#"<a href="/" class="nav-item">Home</a>"#,
-		r#"<a href="" class="nav-item">Home</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/bio/" class="nav-item">Bio</a>"#,
-		r#"<a href="/bio" class="nav-item">Bio</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/acting/" class="nav-item">Acting</a>"#,
-		r#"<a href="/acting" class="nav-item">Acting</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/music/" class="nav-item">Music</a>"#,
-		r#"<a href="/music" class="nav-item">Music</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/modeling/" class="nav-item">Modeling</a>"#,
-		r#"<a href="/modeling" class="nav-item">Modeling</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/reviews/" class="nav-item">Reviews</a>"#,
-		r#"<a href="/reviews" class="nav-item">Reviews</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>"#,
-		r#"<a href="/behind-the-scenes" class="nav-item">Behind the Scenes</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/contact/" class="nav-item">Contact</a>"#,
-		r#"<a href="/contact" class="nav-item">Contact</a>"#
-	);
+	final_html = apply_github_pages_nav_links(final_html);
 
 	// Update image paths for GitHub Pages deployment
 	final_html = final_html.replace(
@@ -258,81 +193,12 @@ fn convert_and_copy_images(source_dir: &Path, dest_dir: &Path) {
 	}
 }
 
-use std::collections::HashMap;
-
 struct CategoryData {
 	title: String,
 	subtitle: String,
 	images: Vec<String>,
 	links: HashMap<String, String>,
 	background: Option<String>,
-}
-
-fn read_youtube_links(folder: &str) -> Vec<String> {
-	let links_file = Path::new("templates").join(folder).join("youtubeLinks.txt");
-	let mut video_ids = Vec::new();
-
-	if links_file.exists() {
-		if let Ok(content) = fs::read_to_string(&links_file) {
-			for line in content.lines() {
-				let line = line.trim();
-				if line.is_empty() {
-					continue;
-				}
-				if let Some(id) = extract_youtube_id(line) {
-					video_ids.push(id);
-				}
-			}
-		}
-	}
-
-	video_ids
-}
-
-fn extract_youtube_id(url: &str) -> Option<String> {
-	if url.contains("youtu.be/") {
-		url.split("youtu.be/").nth(1).map(|s| s.split('?').next().unwrap_or(s).to_string())
-	} else if url.contains("youtube.com/watch") {
-		url.split("v=").nth(1).map(|s| s.split('&').next().unwrap_or(s).to_string())
-	} else {
-		None
-	}
-}
-
-fn generate_youtube_embeds(video_ids: &[String]) -> String {
-	video_ids
-		.iter()
-		.map(|id| {
-			format!(
-				r#"<div class="youtube-video-wrapper">
-                    <iframe src="https://www.youtube.com/embed/{}" frameborder="0" allowfullscreen></iframe>
-                </div>"#,
-				id
-			)
-		})
-		.collect::<Vec<_>>()
-		.join("\n")
-}
-
-fn read_links_file(images_dir: &Path) -> HashMap<String, String> {
-	let mut links = HashMap::new();
-	let links_file = images_dir.join("Links.txt");
-
-	if links_file.exists() {
-		if let Ok(content) = fs::read_to_string(&links_file) {
-			for line in content.lines() {
-				let line = line.trim();
-				if line.is_empty() {
-					continue;
-				}
-				if let Some((name, url)) = line.split_once(',') {
-					links.insert(name.trim().to_string(), url.trim().to_string());
-				}
-			}
-		}
-	}
-
-	links
 }
 
 fn discover_modeling_categories(docs_dir: &Path) -> Vec<(String, CategoryData)> {
@@ -449,38 +315,7 @@ fn generate_modeling_page(content: &str, categories: &[(String, CategoryData)], 
 		.replace("{{CONTENT}}", &updated_content);
 
 	// Update navigation links for GitHub Pages (modeling page)
-	final_html = final_html.replace(
-		r#"<a href="/" class="nav-item">Home</a>"#,
-		r#"<a href="" class="nav-item">Home</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/bio/" class="nav-item">Bio</a>"#,
-		r#"<a href="/bio" class="nav-item">Bio</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/acting/" class="nav-item">Acting</a>"#,
-		r#"<a href="/acting" class="nav-item">Acting</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/music/" class="nav-item">Music</a>"#,
-		r#"<a href="/music" class="nav-item">Music</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/modeling/" class="nav-item">Modeling</a>"#,
-		r#"<a href="/modeling" class="nav-item">Modeling</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/reviews/" class="nav-item">Reviews</a>"#,
-		r#"<a href="/reviews" class="nav-item">Reviews</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/behind-the-scenes/" class="nav-item">Behind the Scenes</a>"#,
-		r#"<a href="/behind-the-scenes" class="nav-item">Behind the Scenes</a>"#
-	);
-	final_html = final_html.replace(
-		r#"<a href="/contact/" class="nav-item">Contact</a>"#,
-		r#"<a href="/contact" class="nav-item">Contact</a>"#
-	);
+	final_html = apply_github_pages_nav_links(final_html);
 
 	// Update CSS path for GitHub Pages deployment with cache busting
 	final_html = final_html.replace(

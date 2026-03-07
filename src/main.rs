@@ -1,85 +1,40 @@
 use axum::{http::header, response::Html, routing::get, Router};
 // TODO: Re-add contact page - Form removed
-use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use tower_http::services::ServeDir;
 use tower_http::set_header::SetResponseHeaderLayer;
+use website_test::shared::{
+	generate_testimonials_html, generate_youtube_embeds, read_links_file, read_testimonials,
+	read_youtube_links, url_encode,
+};
 
-#[derive(Debug, Deserialize)]
-struct Testimonial {
-	quote: String,
-	author: String,
+#[derive(Clone, Debug)]
+struct PageTemplate {
 	title: String,
+	content: String,
 }
 
-#[derive(Debug, Deserialize)]
-struct TestimonialsData {
-	testimonials: Vec<Testimonial>,
+#[derive(Clone, Debug)]
+struct CategoryData {
+	title: String,
+	subtitle: String,
+	images: Vec<String>,
+	links: HashMap<String, String>,
+	background: Option<String>,
 }
 
-fn url_encode(input: &str) -> String {
-	input
-		.chars()
-		.map(|c| match c {
-			' ' => "%20".to_string(),
-			'+' => "%2B".to_string(),
-			'#' => "%23".to_string(),
-			'&' => "%26".to_string(),
-			'=' => "%3D".to_string(),
-			'?' => "%3F".to_string(),
-			c if c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '~' => c.to_string(),
-			_ => format!("%{:02X}", c as u8),
-		})
-		.collect()
+// TODO: Re-add contact page - ContactForm struct for form submissions
+/*
+#[derive(Deserialize)]
+struct ContactForm {
+    name: String,
+    email: Option<String>,
+    subject: String,
+    message: String,
 }
-
-fn read_testimonials() -> Vec<Testimonial> {
-	let json_path = Path::new("templates").join("reviews").join("reviews.json");
-
-	if json_path.exists() {
-		if let Ok(content) = fs::read_to_string(&json_path) {
-			if let Ok(data) = serde_json::from_str::<TestimonialsData>(&content) {
-				return data.testimonials;
-			}
-		}
-	}
-
-	Vec::new()
-}
-
-fn html_escape(input: &str) -> String {
-	input
-		.replace('&', "&amp;")
-		.replace('<', "&lt;")
-		.replace('>', "&gt;")
-		.replace('"', "&quot;")
-		.replace('\'', "&#39;")
-}
-
-fn generate_testimonials_html(testimonials: &[Testimonial]) -> String {
-	testimonials
-		.iter()
-		.map(|t| {
-			format!(
-				r#"<div class="testimonial-card">
-                <div class="testimonial-text">
-                    <p>{}</p>
-                </div>
-                <div class="testimonial-author">
-                    <span class="author-name">{}</span>
-                    <span class="author-title">{}</span>
-                </div>
-            </div>"#,
-				html_escape(&t.quote),
-				html_escape(&t.author),
-				html_escape(&t.title)
-			)
-		})
-		.collect::<Vec<_>>()
-		.join("\n            ")
-}
+*/
 
 fn generate_page(title: &str, content: &str) -> String {
 	let base_template = include_str!("../templates/base.html");
@@ -109,32 +64,6 @@ fn get_image_list(images_dir: &Path, category: &str) -> Vec<String> {
 	images.sort();
 	images
 }
-
-#[derive(Clone, Debug)]
-struct PageTemplate {
-	title: String,
-	content: String,
-}
-
-#[derive(Clone, Debug)]
-struct CategoryData {
-	title: String,
-	subtitle: String,
-	images: Vec<String>,
-	links: HashMap<String, String>,
-	background: Option<String>,
-}
-
-// TODO: Re-add contact page - ContactForm struct for form submissions
-/*
-#[derive(Deserialize)]
-struct ContactForm {
-    name: String,
-    email: Option<String>,
-    subject: String,
-    message: String,
-}
-*/
 
 fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::error::Error>> {
 	let mut templates = HashMap::new();
@@ -234,74 +163,6 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
 	}
 
 	Ok(templates)
-}
-
-fn read_youtube_links(folder: &str) -> Vec<String> {
-	let links_file = Path::new("templates").join(folder).join("youtubeLinks.txt");
-	let mut video_ids = Vec::new();
-
-	if links_file.exists() {
-		if let Ok(content) = fs::read_to_string(&links_file) {
-			for line in content.lines() {
-				let line = line.trim();
-				if line.is_empty() {
-					continue;
-				}
-				// Extract video ID from youtu.be/ID or youtube.com/watch?v=ID
-				if let Some(id) = extract_youtube_id(line) {
-					video_ids.push(id);
-				}
-			}
-		}
-	}
-
-	video_ids
-}
-
-fn extract_youtube_id(url: &str) -> Option<String> {
-	if url.contains("youtu.be/") {
-		url.split("youtu.be/").nth(1).map(|s| s.split('?').next().unwrap_or(s).to_string())
-	} else if url.contains("youtube.com/watch") {
-		url.split("v=").nth(1).map(|s| s.split('&').next().unwrap_or(s).to_string())
-	} else {
-		None
-	}
-}
-
-fn generate_youtube_embeds(video_ids: &[String]) -> String {
-	video_ids
-		.iter()
-		.map(|id| {
-			format!(
-				r#"<div class="youtube-video-wrapper">
-                    <iframe src="https://www.youtube.com/embed/{}" frameborder="0" allowfullscreen></iframe>
-                </div>"#,
-				id
-			)
-		})
-		.collect::<Vec<_>>()
-		.join("\n")
-}
-
-fn read_links_file(images_dir: &Path) -> HashMap<String, String> {
-	let mut links = HashMap::new();
-	let links_file = images_dir.join("Links.txt");
-
-	if links_file.exists() {
-		if let Ok(content) = fs::read_to_string(&links_file) {
-			for line in content.lines() {
-				let line = line.trim();
-				if line.is_empty() {
-					continue;
-				}
-				if let Some((name, url)) = line.split_once(',') {
-					links.insert(name.trim().to_string(), url.trim().to_string());
-				}
-			}
-		}
-	}
-
-	links
 }
 
 fn discover_modeling_categories() -> HashMap<String, CategoryData> {
@@ -412,6 +273,25 @@ fn generate_modeling_page(content: &str, categories: &HashMap<String, CategoryDa
 		.replace("{{CONTENT}}", &updated_content)
 }
 
+fn not_found_response(page_name: &str) -> axum::response::Response {
+	let html = generate_page(
+		"404 - Page Not Found",
+		&format!(
+			"<div style='text-align: center; padding: 50px;'>\
+                <h1>404 - Page Not Found</h1>\
+                <p>The {} page template was not found.</p>\
+                <a href='/'>Return to Home</a>\
+             </div>",
+			page_name
+		),
+	);
+	axum::response::Response::builder()
+		.status(404)
+		.header("content-type", "text/html")
+		.body(html.into())
+		.unwrap()
+}
+
 // Home page handler
 async fn home_page_handler(templates: axum::extract::State<HashMap<String, PageTemplate>>) -> Html<String> {
 	if let Some(template) = templates.get("/") {
@@ -428,18 +308,7 @@ async fn contact_page_handler(templates: axum::extract::State<HashMap<String, Pa
 		let html_content = generate_page(&template.title, &template.content);
 		Ok(Html(html_content))
 	} else {
-		let not_found_html = generate_page("404 - Page Not Found",
-		                                   "<div style='text-align: center; padding: 50px;'>
-                <h1>404 - Page Not Found</h1>
-                <p>The contact page template was not found.</p>
-                <a href='/'>Return to Home</a>
-             </div>");
-
-		Err(axum::response::Response::builder()
-			.status(404)
-			.header("content-type", "text/html")
-			.body(not_found_html.into())
-			.unwrap())
+		Err(not_found_response("contact"))
 	}
 }
 
@@ -449,18 +318,7 @@ async fn bio_page_handler(templates: axum::extract::State<HashMap<String, PageTe
 		let html_content = generate_page(&template.title, &template.content);
 		Ok(Html(html_content))
 	} else {
-		let not_found_html = generate_page("404 - Page Not Found",
-		                                   "<div style='text-align: center; padding: 50px;'>
-                <h1>404 - Page Not Found</h1>
-                <p>The bio page template was not found.</p>
-                <a href='/'>Return to Home</a>
-             </div>");
-
-		Err(axum::response::Response::builder()
-			.status(404)
-			.header("content-type", "text/html")
-			.body(not_found_html.into())
-			.unwrap())
+		Err(not_found_response("bio"))
 	}
 }
 
@@ -473,18 +331,7 @@ async fn music_page_handler(templates: axum::extract::State<HashMap<String, Page
 		let html_content = generate_page(&template.title, &content);
 		Ok(Html(html_content))
 	} else {
-		let not_found_html = generate_page("404 - Page Not Found",
-		                                   "<div style='text-align: center; padding: 50px;'>
-                <h1>404 - Page Not Found</h1>
-                <p>The music page template was not found.</p>
-                <a href='/'>Return to Home</a>
-             </div>");
-
-		Err(axum::response::Response::builder()
-			.status(404)
-			.header("content-type", "text/html")
-			.body(not_found_html.into())
-			.unwrap())
+		Err(not_found_response("music"))
 	}
 }
 
@@ -497,18 +344,7 @@ async fn acting_page_handler(templates: axum::extract::State<HashMap<String, Pag
 		let html_content = generate_page(&template.title, &content);
 		Ok(Html(html_content))
 	} else {
-		let not_found_html = generate_page("404 - Page Not Found",
-		                                   "<div style='text-align: center; padding: 50px;'>
-                <h1>404 - Page Not Found</h1>
-                <p>The acting page template was not found.</p>
-                <a href='/'>Return to Home</a>
-             </div>");
-
-		Err(axum::response::Response::builder()
-			.status(404)
-			.header("content-type", "text/html")
-			.body(not_found_html.into())
-			.unwrap())
+		Err(not_found_response("acting"))
 	}
 }
 
@@ -521,18 +357,7 @@ async fn reviews_page_handler(templates: axum::extract::State<HashMap<String, Pa
 		let html_content = generate_page(&template.title, &content);
 		Ok(Html(html_content))
 	} else {
-		let not_found_html = generate_page("404 - Page Not Found",
-		                                   "<div style='text-align: center; padding: 50px;'>
-                <h1>404 - Page Not Found</h1>
-                <p>The reviews page template was not found.</p>
-                <a href='/'>Return to Home</a>
-             </div>");
-
-		Err(axum::response::Response::builder()
-			.status(404)
-			.header("content-type", "text/html")
-			.body(not_found_html.into())
-			.unwrap())
+		Err(not_found_response("reviews"))
 	}
 }
 
@@ -578,18 +403,7 @@ async fn bts_page_handler(templates: axum::extract::State<HashMap<String, PageTe
 		let html_content = generate_page(&template.title, &content);
 		Ok(Html(html_content))
 	} else {
-		let not_found_html = generate_page("404 - Page Not Found",
-		                                   "<div style='text-align: center; padding: 50px;'>
-                <h1>404 - Page Not Found</h1>
-                <p>The behind-the-scenes page template was not found.</p>
-                <a href='/'>Return to Home</a>
-             </div>");
-
-		Err(axum::response::Response::builder()
-			.status(404)
-			.header("content-type", "text/html")
-			.body(not_found_html.into())
-			.unwrap())
+		Err(not_found_response("behind-the-scenes"))
 	}
 }
 
@@ -600,18 +414,7 @@ async fn unified_modeling_handler(templates: axum::extract::State<HashMap<String
 		let html_content = generate_modeling_page(&template.content, &categories);
 		Ok(Html(html_content))
 	} else {
-		let not_found_html = generate_page("404 - Page Not Found",
-		                                   "<div style='text-align: center; padding: 50px;'>
-                <h1>404 - Page Not Found</h1>
-                <p>The modeling page template was not found.</p>
-                <a href='/'>Return to Home</a>
-             </div>");
-
-		Err(axum::response::Response::builder()
-			.status(404)
-			.header("content-type", "text/html")
-			.body(not_found_html.into())
-			.unwrap())
+		Err(not_found_response("modeling"))
 	}
 }
 

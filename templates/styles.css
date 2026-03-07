@@ -901,20 +901,130 @@
     }
 }
 
-/* Bio Page Styles */
-.bio-section {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem;
+/* === Shared Page Layout === */
+.main-content {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
-.bio-header {
+.bio-header,
+.music-header,
+.acting-header,
+.reviews-header,
+.modeling-header {
     text-align: center;
     margin-bottom: 3rem;
     padding: 3rem 2rem;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+
+.bio-tagline,
+.music-tagline,
+.acting-tagline,
+.reviews-tagline,
+.modeling-tagline {
+    font-size: 1.2rem;
+    color: #666;
+    font-style: italic;
+}
+
+.bio-content,
+.music-content,
+.acting-content,
+.reviews-content,
+.modeling-content {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 3rem;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+
+.bio-intro,
+.music-intro,
+.acting-intro {
+    font-size: 1.3rem;
+    line-height: 1.8;
+    color: #444;
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+}
+
+/* === Behind the Scenes Page === */
+.bts-header {
+    text-align: center;
+    padding: 40px 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    margin-bottom: 40px;
+}
+
+.bts-header h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.bts-header p {
+    font-size: 1.2em;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto;
+    color: #ddd;
+}
+
+.bts-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.bts-image-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.bts-image-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.5);
+}
+
+.bts-image-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .bts-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .bts-header h1 {
+        font-size: 2em;
+    }
+
+    .bts-header p {
+        font-size: 1em;
+    }
+}
+
+/* Bio Page Styles */
+.bio-section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
 }
 
 .bio-title {
@@ -927,26 +1037,7 @@
     margin-bottom: 1rem;
 }
 
-.bio-tagline {
-    font-size: 1.2rem;
-    color: #666;
-    font-style: italic;
-}
-
-.bio-content {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    padding: 3rem;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-}
-
 .bio-intro {
-    font-size: 1.3rem;
-    line-height: 1.8;
-    color: #444;
-    text-align: center;
-    margin-bottom: 3rem;
-    padding-bottom: 2rem;
     border-bottom: 2px solid rgba(107, 115, 255, 0.2);
 }
 
@@ -1147,15 +1238,6 @@
     padding: 2rem;
 }
 
-.music-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    padding: 3rem 2rem;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-}
-
 .music-title {
     font-size: 3.5rem;
     font-weight: 800;
@@ -1166,26 +1248,7 @@
     margin-bottom: 1rem;
 }
 
-.music-tagline {
-    font-size: 1.2rem;
-    color: #666;
-    font-style: italic;
-}
-
-.music-content {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    padding: 3rem;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-}
-
 .music-intro {
-    font-size: 1.3rem;
-    line-height: 1.8;
-    color: #444;
-    text-align: center;
-    margin-bottom: 3rem;
-    padding-bottom: 2rem;
     border-bottom: 2px solid rgba(107, 115, 255, 0.2);
 }
 
@@ -1510,15 +1573,6 @@
     padding: 2rem;
 }
 
-.modeling-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    padding: 3rem 2rem;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-}
-
 .modeling-title {
     font-size: 3.5rem;
     font-weight: 800;
@@ -1527,19 +1581,6 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 1rem;
-}
-
-.modeling-tagline {
-    font-size: 1.2rem;
-    color: #666;
-    font-style: italic;
-}
-
-.modeling-content {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    padding: 3rem;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
 }
 
 .modeling-content .page-subtitle {
@@ -1683,15 +1724,6 @@
     padding: 2rem;
 }
 
-.acting-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    padding: 3rem 2rem;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-}
-
 .acting-title {
     font-size: 3.5rem;
     font-weight: 800;
@@ -1702,26 +1734,8 @@
     margin-bottom: 1rem;
 }
 
-.acting-tagline {
-    font-size: 1.2rem;
-    color: #666;
-    font-style: italic;
-}
-
-.acting-content {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    padding: 3rem;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-}
-
 .acting-intro {
-    font-size: 1.3rem;
-    line-height: 1.8;
-    color: #444;
-    text-align: center;
     margin-bottom: 2rem;
-    padding-bottom: 2rem;
     border-bottom: 2px solid rgba(255, 152, 0, 0.2);
 }
 
@@ -2017,15 +2031,6 @@
     padding: 2rem;
 }
 
-.reviews-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    padding: 3rem 2rem;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-}
-
 .reviews-title {
     font-size: 3.5rem;
     font-weight: 800;
@@ -2034,19 +2039,6 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 1rem;
-}
-
-.reviews-tagline {
-    font-size: 1.2rem;
-    color: #666;
-    font-style: italic;
-}
-
-.reviews-content {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    padding: 3rem;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
 }
 
 .testimonials-heading {
