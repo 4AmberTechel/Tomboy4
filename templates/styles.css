@@ -259,6 +259,12 @@
     position: relative !important;
 }
 
+.acting-bg {
+    background: linear-gradient(135deg, #e53935 0%, #c62828 50%, #b71c1c 100%) !important;
+    color: white !important;
+    position: relative !important;
+}
+
 .music-bg {
     background: linear-gradient(135deg, #6b73ff 0%, #9c27b0 50%, #8e24aa 100%) !important;
     color: white !important;
