@@ -5,9 +5,11 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 use website_test::shared::{
-    generate_testimonials_html, generate_youtube_embeds, is_image_extension, read_links_file,
-    read_testimonials, read_youtube_links, url_encode,
+    generate_testimonials_html, generate_youtube_embeds, inject_seo_head, is_image_extension,
+    read_links_file, read_testimonials, read_youtube_links, url_encode,
 };
+
+const BASE_URL: &str = "https://4ambertechel.com";
 
 fn get_git_hash() -> String {
     Command::new("git")
@@ -62,7 +64,7 @@ fn apply_github_pages_nav_links(html: String) -> String {
     )
 }
 
-fn generate_page(title: &str, content: &str, version: &str) -> String {
+fn generate_page(title: &str, content: &str, version: &str, page_url: &str) -> String {
     let base_template = include_str!("../templates/base.html");
     let mut final_html = base_template
         .replace("{{TITLE}}", title)
@@ -92,7 +94,7 @@ fn generate_page(title: &str, content: &str, version: &str) -> String {
         &format!(r#"href="/styles.css?v={}""#, version),
     );
 
-    final_html
+    inject_seo_head(&final_html, title, page_url, BASE_URL)
 }
 
 /// After a path prefix like `/global-images/` is found, replace the first
@@ -372,7 +374,32 @@ fn generate_modeling_page(
         &format!(r#"href="/styles.css?v={}""#, version),
     );
 
-    final_html
+    inject_seo_head(&final_html, "Modeling Portfolio", "/modeling/", BASE_URL)
+}
+
+fn generate_sitemap(output_dir: &Path) {
+    let sitemap = r#"<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://4ambertechel.com/</loc><priority>1.0</priority></url>
+  <url><loc>https://4ambertechel.com/bio/</loc></url>
+  <url><loc>https://4ambertechel.com/acting/</loc></url>
+  <url><loc>https://4ambertechel.com/music/</loc></url>
+  <url><loc>https://4ambertechel.com/modeling/</loc></url>
+  <url><loc>https://4ambertechel.com/reviews/</loc></url>
+  <url><loc>https://4ambertechel.com/contact/</loc></url>
+  <url><loc>https://4ambertechel.com/behind-the-scenes/</loc></url>
+</urlset>"#;
+
+    let path = output_dir.join("sitemap.xml");
+    fs::write(&path, sitemap).expect("Failed to write sitemap.xml");
+    println!("Generated sitemap.xml");
+}
+
+fn generate_robots_txt(output_dir: &Path) {
+    let robots = "User-agent: *\nAllow: /\nSitemap: https://4ambertechel.com/sitemap.xml\n";
+    let path = output_dir.join("robots.txt");
+    fs::write(&path, robots).expect("Failed to write robots.txt");
+    println!("Generated robots.txt");
 }
 
 fn create_dir_if_not_exists(path: &Path) {
@@ -425,7 +452,7 @@ fn main() {
 
     // Generate home page
     let home_content = include_str!("../templates/index.html");
-    let home_html = generate_page("Home", home_content, &version);
+    let home_html = generate_page("Home", home_content, &version, "/");
     let home_file_path = docs_dir.join("index.html");
     fs::write(&home_file_path, home_html).expect("Failed to write index.html");
     println!("Generated index.html");
@@ -458,7 +485,7 @@ fn main() {
                     "url('/templates/bio/background/bkgrnd.png')",
                     "url('./background/bkgrnd.webp')",
                 );
-                let html = generate_page("Bio", &updated_content, &version);
+                let html = generate_page("Bio", &updated_content, &version, "/bio/");
                 let file_path = bio_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write bio/index.html");
                 println!("Generated bio/index.html");
@@ -495,7 +522,7 @@ fn main() {
                     "url('/templates/music/background/bkgrnd.png')",
                     "url('./background/bkgrnd.webp')",
                 );
-                let html = generate_page("Music", &updated_content, &version);
+                let html = generate_page("Music", &updated_content, &version, "/music/");
                 let file_path = music_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write music/index.html");
                 println!("Generated music/index.html");
@@ -535,7 +562,12 @@ fn main() {
     if contact_construction_path.exists() {
         match fs::read_to_string(&contact_construction_path) {
             Ok(content) => {
-                let html = generate_page("Contact - Under Construction", &content, &version);
+                let html = generate_page(
+                    "Contact - Under Construction",
+                    &content,
+                    &version,
+                    "/contact/",
+                );
                 let file_path = contact_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write contact/index.html");
                 println!("Generated contact/index.html (under construction)");
@@ -572,7 +604,7 @@ fn main() {
                     "url('/templates/acting/Background/bckgrnd.png')",
                     "url('./Background/bckgrnd.webp')",
                 );
-                let html = generate_page("Acting", &updated_content, &version);
+                let html = generate_page("Acting", &updated_content, &version, "/acting/");
                 let file_path = acting_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write acting/index.html");
                 println!("Generated acting/index.html");
@@ -594,7 +626,7 @@ fn main() {
                 let testimonials = read_testimonials();
                 let testimonials_html = generate_testimonials_html(&testimonials);
                 content = content.replace("{{TESTIMONIALS_HTML}}", &testimonials_html);
-                let html = generate_page("Reviews", &content, &version);
+                let html = generate_page("Reviews", &content, &version, "/reviews/");
                 let file_path = reviews_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write reviews/index.html");
                 println!("Generated reviews/index.html");
@@ -680,7 +712,12 @@ fn main() {
                         "url('./background/bkgrnd.webp')",
                     );
 
-                let html = generate_page("Behind the Scenes", &updated_content, &version);
+                let html = generate_page(
+                    "Behind the Scenes",
+                    &updated_content,
+                    &version,
+                    "/behind-the-scenes/",
+                );
                 let file_path = bts_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write behind-the-scenes/index.html");
                 println!("Generated behind-the-scenes/index.html");
@@ -701,7 +738,8 @@ fn main() {
     if dance_path.exists() {
         match fs::read_to_string(&dance_path) {
             Ok(content) => {
-                let html = generate_page("Dance - Under Construction", &content, &version);
+                let html =
+                    generate_page("Dance - Under Construction", &content, &version, "/dance/");
                 let file_path = dance_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write dance/index.html");
                 println!("Generated dance/index.html (under construction)");
@@ -720,7 +758,7 @@ fn main() {
     if arts_path.exists() {
         match fs::read_to_string(&arts_path) {
             Ok(content) => {
-                let html = generate_page("Arts - Under Construction", &content, &version);
+                let html = generate_page("Arts - Under Construction", &content, &version, "/arts/");
                 let file_path = arts_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write arts/index.html");
                 println!("Generated arts/index.html (under construction)");
@@ -728,6 +766,9 @@ fn main() {
             Err(e) => println!("Failed to read arts template: {}", e),
         }
     }
+
+    generate_sitemap(docs_dir);
+    generate_robots_txt(docs_dir);
 
     println!("\nStatic files generated successfully!");
 }
