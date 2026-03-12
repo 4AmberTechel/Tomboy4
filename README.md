@@ -4,22 +4,8 @@ A Rust-based website for Amber Techel Arts Talents & Entertainment, deployable t
 
 ## Development Commands
 
-### Local Development
-
 - `cargo run --bin server` - Start the development server (runs on http://127.0.0.1:3000)
 - `cargo run --bin generate-static` - Generate static HTML files for GitHub Pages
-
-### Build Commands
-
-- `cargo check` - Check code for compilation errors without building
-- `cargo build` - Build the project
-- `cargo build --release` - Build optimized release version
-
-### Code Quality
-
-- `cargo test` - Run all tests
-- `cargo clippy` - Run the Rust linter
-- `cargo fmt` - Format code according to Rust standards
 
 ## GitHub Pages Deployment
 
