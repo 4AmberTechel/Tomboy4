@@ -1,4 +1,4 @@
-# Website-test
+# Amber's Website
 
 A Rust-based website for Amber Techel Arts Talents & Entertainment, deployable to GitHub Pages.
 
