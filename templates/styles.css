@@ -2206,12 +2206,9 @@
 }
 
 .modal-image-container {
-    max-width: 90vw;
-    max-height: 85vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
 }
 
 #modalImage {

@@ -1,5 +1,6 @@
 const MAX_IMAGE_DIMENSION: u32 = 2048;
 const WEBP_QUALITY: f32 = 82.0;
+use ab_glyph::{Font, FontArc, PxScale};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
@@ -409,6 +410,101 @@ fn create_dir_if_not_exists(path: &Path) {
     }
 }
 
+fn center_x(image_width: u32, text: &str, font: &FontArc, scale: PxScale) -> i32 {
+    use ab_glyph::ScaleFont;
+    let scaled = font.as_scaled(scale);
+    let text_width: f32 = text
+        .chars()
+        .map(|c| scaled.h_advance(scaled.glyph_id(c)))
+        .sum();
+    ((image_width as f32 - text_width) / 2.0).max(0.0) as i32
+}
+
+fn generate_og_image(docs_dir: &Path) {
+    let dest_file = docs_dir.join("global-images").join("og-image.webp");
+
+    if dest_file.exists() {
+        println!("Skipping (cached): og-image.webp");
+        return;
+    }
+
+    let bg_path = Path::new("templates")
+        .join("global-images")
+        .join("homebackground.png");
+    if !bg_path.exists() {
+        println!("Warning: homebackground.png not found, skipping OG image generation");
+        return;
+    }
+
+    let img = match image::ImageReader::open(&bg_path)
+        .ok()
+        .and_then(|r| r.with_guessed_format().ok())
+        .and_then(|r| r.decode().ok())
+    {
+        Some(img) => img,
+        None => {
+            println!("Failed to open homebackground.png for OG image");
+            return;
+        }
+    };
+
+    // Resize/crop to 1200x630 OG dimensions
+    let img = img.resize_to_fill(1200, 630, image::imageops::FilterType::Lanczos3);
+    let mut rgba = img.to_rgba8();
+
+    // Semi-transparent dark overlay (alpha blend with black at ~63% opacity)
+    for pixel in rgba.pixels_mut() {
+        let alpha = 160u32;
+        pixel[0] = ((pixel[0] as u32 * (255 - alpha)) / 255) as u8;
+        pixel[1] = ((pixel[1] as u32 * (255 - alpha)) / 255) as u8;
+        pixel[2] = ((pixel[2] as u32 * (255 - alpha)) / 255) as u8;
+    }
+
+    let font_data = include_bytes!("../templates/global-images/og-font-bold.ttf");
+    let font = match FontArc::try_from_slice(font_data) {
+        Ok(f) => f,
+        Err(e) => {
+            println!("Failed to load OG font: {}", e);
+            return;
+        }
+    };
+
+    let white = image::Rgba([255u8, 255, 255, 255]);
+    let accent = image::Rgba([220u8, 200, 255, 255]);
+
+    let title_scale = PxScale::from(72.0);
+    let subtitle_scale = PxScale::from(36.0);
+    let cta_scale = PxScale::from(28.0);
+
+    let title = "Amber Techel";
+    let subtitle = "Actress  \u{00B7}  Singer-Songwriter  \u{00B7}  Model";
+    let cta = "View Portfolio \u{2192}";
+
+    let title_x = center_x(1200, title, &font, title_scale);
+    let subtitle_x = center_x(1200, subtitle, &font, subtitle_scale);
+    let cta_x = center_x(1200, cta, &font, cta_scale);
+
+    imageproc::drawing::draw_text_mut(&mut rgba, white, title_x, 185, title_scale, &font, title);
+    imageproc::drawing::draw_text_mut(
+        &mut rgba,
+        white,
+        subtitle_x,
+        295,
+        subtitle_scale,
+        &font,
+        subtitle,
+    );
+    imageproc::drawing::draw_text_mut(&mut rgba, accent, cta_x, 490, cta_scale, &font, cta);
+
+    let (w, h) = rgba.dimensions();
+    let webp_data = webp::Encoder::from_rgba(rgba.as_raw(), w, h).encode(WEBP_QUALITY);
+    if let Err(e) = std::fs::write(&dest_file, &*webp_data) {
+        println!("Failed to write og-image.webp: {}", e);
+    } else {
+        println!("Generated og-image.webp");
+    }
+}
+
 fn main() {
     let docs_dir = Path::new("docs");
     let version = get_git_hash();
@@ -439,6 +535,9 @@ fn main() {
         create_dir_if_not_exists(&docs_global_images);
         convert_and_copy_images(&templates_global_images, &docs_global_images);
     }
+
+    // Generate branded OG image with text overlay
+    generate_og_image(docs_dir);
 
     // Create modeling subdirectory
     create_dir_if_not_exists(&docs_dir.join("modeling"));

@@ -151,7 +151,8 @@ const STRUCTURED_DATA_JSON: &str = r#"<script type="application/ld+json">
 pub fn inject_seo_head(html: &str, title: &str, page_url: &str, base_url: &str) -> String {
     const SEO_TAG: &str = "<!-- SEO";
     let mut description = String::new();
-    let mut og_image_path = "/global-images/homebackground.webp".to_string();
+    let mut og_image_path = "/global-images/og-image.webp".to_string();
+    let mut og_title_override: Option<String> = None;
     let mut html = html.to_string();
 
     if let Some(start) = html.find(SEO_TAG) {
@@ -165,6 +166,7 @@ pub fn inject_seo_head(html: &str, title: &str, page_url: &str, base_url: &str) 
                     match key.trim() {
                         "description" => description = val.trim().to_string(),
                         "og:image" => og_image_path = val.trim().to_string(),
+                        "og:title" => og_title_override = Some(val.trim().to_string()),
                         _ => {}
                     }
                 }
@@ -181,7 +183,11 @@ pub fn inject_seo_head(html: &str, title: &str, page_url: &str, base_url: &str) 
 
     let canonical_url = format!("{}{}", base_url, page_url);
     let escaped_desc = html_escape(&description);
-    let escaped_title = html_escape(&format!("{} - 4AmberTechel", title));
+    let page_title = html_escape(&format!("{} - 4AmberTechel", title));
+    let escaped_og_title = og_title_override
+        .as_deref()
+        .map(html_escape)
+        .unwrap_or(page_title);
 
     let meta_description = if description.is_empty() {
         String::new()
@@ -192,11 +198,11 @@ pub fn inject_seo_head(html: &str, title: &str, page_url: &str, base_url: &str) 
     let og_tags = format!(
         r#"<meta property="og:type" content="website">
     <meta property="og:url" content="{canonical_url}">
-    <meta property="og:title" content="{escaped_title}">
+    <meta property="og:title" content="{escaped_og_title}">
     <meta property="og:description" content="{escaped_desc}">
     <meta property="og:image" content="{og_image_url}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{escaped_title}">
+    <meta name="twitter:title" content="{escaped_og_title}">
     <meta name="twitter:description" content="{escaped_desc}">
     <meta name="twitter:image" content="{og_image_url}">"#
     );
