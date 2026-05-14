@@ -943,7 +943,7 @@
 .acting-content,
 .reviews-content,
 .modeling-content {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 20px;
     padding: 3rem;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
@@ -2212,11 +2212,19 @@
 }
 
 #modalImage {
-    max-width: 100%;
-    max-height: calc(85vh - 80px);
+    display: block;
+
+    width: auto;
+    height: auto;
+
+    max-width: 90vw;
+    max-height: 85vh;
+
     object-fit: contain;
+
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+
     opacity: 0;
     transform: scale(0.95);
     transition: all 0.3s ease;

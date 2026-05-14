@@ -10,3 +10,7 @@ A Rust-based website for Amber Techel Arts Talents & Entertainment, deployable t
 ## GitHub Pages Deployment
 
 The site automatically deploys to GitHub Pages via GitHub Actions when you push to the main branch.
+
+//TODO force images to stay within panel,
+//TODO force images to retain aspect ratio
+//TODO load 3 images per row on desktop and 2 images per row on mobile
