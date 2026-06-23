@@ -153,6 +153,114 @@ fn get_image_list_for_web(images_dir: &Path, category: &str) -> Vec<String> {
     images
 }
 
+fn exif_orientation(path: &Path) -> u16 {
+    use std::io::Read;
+    let file = match fs::File::open(path) {
+        Ok(f) => f,
+        Err(_) => return 1,
+    };
+    let mut bytes = Vec::new();
+    if file.take(131072).read_to_end(&mut bytes).is_err() {
+        return 1;
+    }
+    let n = bytes.len();
+    if n < 4 || bytes[0] != 0xFF || bytes[1] != 0xD8 {
+        return 1;
+    }
+    let mut i = 2;
+    while i + 4 <= n {
+        if bytes[i] != 0xFF {
+            i += 1;
+            continue;
+        }
+        let marker = bytes[i + 1];
+        if marker == 0xFF {
+            i += 1;
+            continue;
+        }
+        if marker == 0xD9 || marker == 0xDA {
+            break;
+        }
+        if marker == 0x01 || (0xD0..=0xD7).contains(&marker) {
+            i += 2;
+            continue;
+        }
+        let len = ((bytes[i + 2] as usize) << 8) | bytes[i + 3] as usize;
+        if len < 2 || i + 2 + len > n {
+            break;
+        }
+        if marker == 0xE1 {
+            let seg = &bytes[i + 4..i + 2 + len];
+            if seg.len() > 6
+                && &seg[0..6] == b"Exif\0\0"
+                && let Some(o) = tiff_orientation(&seg[6..])
+            {
+                return o;
+            }
+        }
+        i += 2 + len;
+    }
+    1
+}
+
+fn tiff_orientation(t: &[u8]) -> Option<u16> {
+    if t.len() < 8 {
+        return None;
+    }
+    let le = match &t[0..2] {
+        b"II" => true,
+        b"MM" => false,
+        _ => return None,
+    };
+    let read_u16 = |b: &[u8]| -> u16 {
+        if le {
+            (b[0] as u16) | ((b[1] as u16) << 8)
+        } else {
+            ((b[0] as u16) << 8) | (b[1] as u16)
+        }
+    };
+    let read_u32 = |b: &[u8]| -> u32 {
+        if le {
+            (b[0] as u32) | ((b[1] as u32) << 8) | ((b[2] as u32) << 16) | ((b[3] as u32) << 24)
+        } else {
+            ((b[0] as u32) << 24) | ((b[1] as u32) << 16) | ((b[2] as u32) << 8) | (b[3] as u32)
+        }
+    };
+    let ifd = read_u32(&t[4..8]) as usize;
+    if ifd + 2 > t.len() {
+        return None;
+    }
+    let count = read_u16(&t[ifd..ifd + 2]) as usize;
+    let mut e = ifd + 2;
+    for _ in 0..count {
+        if e + 12 > t.len() {
+            break;
+        }
+        if read_u16(&t[e..e + 2]) == 0x0112 {
+            let value = read_u16(&t[e + 8..e + 10]);
+            if (1..=8).contains(&value) {
+                return Some(value);
+            }
+            return None;
+        }
+        e += 12;
+    }
+    None
+}
+
+fn apply_orientation(img: image::DynamicImage, orientation: u16) -> image::DynamicImage {
+    match orientation {
+        2 => img.fliph(),
+        3 => img.rotate180(),
+        4 => img.flipv(),
+        5 => img.rotate90().fliph(),
+        6 => img.rotate90(),
+        7 => img.rotate270().fliph(),
+        8 => img.rotate270(),
+        _ => img,
+    }
+}
+
 fn convert_and_copy_images(source_dir: &Path, dest_dir: &Path) {
     if !source_dir.exists() {
         return;
@@ -173,8 +281,9 @@ fn convert_and_copy_images(source_dir: &Path, dest_dir: &Path) {
                 let webp_name = format!("{}.webp", stem.to_string_lossy());
                 let dest_file = dest_dir.join(&webp_name);
 
-                // Skip if already converted (GitHub Actions caches docs/)
-                if dest_file.exists() {
+                let orientation = exif_orientation(&path);
+
+                if dest_file.exists() && orientation == 1 {
                     println!("Skipping (cached): {}", webp_name);
                     continue;
                 }
@@ -186,6 +295,7 @@ fn convert_and_copy_images(source_dir: &Path, dest_dir: &Path) {
 
                 match open_result {
                     Some(img) => {
+                        let img = apply_orientation(img, orientation);
                         let img = if img.width() > MAX_IMAGE_DIMENSION
                             || img.height() > MAX_IMAGE_DIMENSION
                         {
@@ -447,6 +557,8 @@ fn generate_og_image(docs_dir: &Path) {
             return;
         }
     };
+
+    let img = apply_orientation(img, exif_orientation(&bg_path));
 
     // Resize/crop to 1200x630 OG dimensions
     let img = img.resize_to_fill(1200, 630, image::imageops::FilterType::Lanczos3);
