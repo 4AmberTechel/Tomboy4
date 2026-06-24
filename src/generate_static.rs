@@ -959,24 +959,46 @@ fn main() {
         }
     }
 
-    // Generate arts page (under construction)
     let arts_dir = docs_dir.join("arts");
     create_dir_if_not_exists(&arts_dir);
 
-    let arts_path = Path::new("templates")
-        .join("arts")
-        .join("arts-under-construction.html");
-    if arts_path.exists() {
-        match fs::read_to_string(&arts_path) {
-            Ok(content) => {
-                let html = generate_page("Arts - Under Construction", &content, &version, "/arts/");
-                let file_path = arts_dir.join("index.html");
-                fs::write(&file_path, html).expect("Failed to write arts/index.html");
-                println!("Generated arts/index.html (under construction)");
+    let arts_images_src = Path::new("templates").join("arts").join("Art");
+    let arts_images_dest = arts_dir.join("Art");
+    if arts_images_src.exists() {
+        create_dir_if_not_exists(&arts_images_dest);
+        convert_and_copy_images(&arts_images_src, &arts_images_dest);
+    }
+
+    let mut arts_images = Vec::new();
+    if arts_images_src.exists()
+        && let Ok(entries) = fs::read_dir(&arts_images_src)
+    {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if let Some(ext) = path.extension().and_then(|e| e.to_str())
+                && is_image_extension(ext)
+                && let Some(stem) = path.file_stem()
+            {
+                let webp_name = format!("{}.webp", stem.to_string_lossy());
+                let url_encoded = url_encode(&webp_name);
+                arts_images.push(format!("./Art/{}", url_encoded));
             }
-            Err(e) => println!("Failed to read arts template: {}", e),
         }
     }
+    arts_images.sort();
+
+    let arts_images_json: Vec<String> = arts_images
+        .iter()
+        .map(|img| format!("\"{}\"", img))
+        .collect();
+    let arts_images_json_str = format!("[{}]", arts_images_json.join(", "));
+
+    let arts_content = include_str!("../templates/arts/arts.html");
+    let arts_body = arts_content.replace("{{ARTS_IMAGES_JSON}}", &arts_images_json_str);
+    let arts_html = generate_page("Art", &arts_body, &version, "/arts/");
+    let arts_file_path = arts_dir.join("index.html");
+    fs::write(&arts_file_path, arts_html).expect("Failed to write arts/index.html");
+    println!("Generated arts/index.html ({} pieces)", arts_images.len());
 
     generate_sitemap(docs_dir);
     generate_robots_txt(docs_dir);
