@@ -1,0 +1,147 @@
+<!-- SEO
+og:title: Amber Techel Art | Original Paintings & Drawings
+description: Original artwork by Amber Techel - paintings, drawings, figure studies, and mixed-media pieces.
+og:image: /global-images/og-image.webp
+-->
+<section class="modeling-section-page">
+    <div class="modeling-header">
+        <h1 class="modeling-title">Art</h1>
+        <p class="modeling-tagline">Original Works | Paintings | Drawings | Figure Studies</p>
+    </div>
+
+    <div class="modeling-content">
+        <div class="modeling-intro">
+            <p>A collection of original artwork by Amber Techel - paintings, drawings, figure studies, and
+                mixed-media pieces created over the years. Select any piece to view it larger and browse the
+                full gallery.</p>
+        </div>
+
+        <p class="page-subtitle" id="artsCount"></p>
+
+        <div class="image-grid" id="imageGrid"></div>
+
+        <div class="no-images-message" id="noImagesMessage" style="display:none;">
+            <p>No artwork available yet.</p>
+        </div>
+    </div>
+
+    <div class="modal" id="imageModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content-wrapper">
+            <button aria-label="Close modal" class="modal-close">&times;</button>
+            <button aria-label="Previous image" class="modal-nav modal-prev">
+                <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                     viewBox="0 0 24 24" width="24">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+
+            <div class="modal-image-container">
+                <img alt="" id="modalImage" src=""/>
+                <div class="modal-caption">
+                    <span id="modalImageTitle"></span>
+                    <span id="modalImageCounter"></span>
+                </div>
+            </div>
+
+            <button aria-label="Next image" class="modal-nav modal-next">
+                <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                     viewBox="0 0 24 24" width="24">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+        </div>
+    </div>
+</section>
+
+<script>
+    const artImages = {{ARTS_IMAGES_JSON}};
+    let currentImageIndex = 0;
+
+    function renderGallery() {
+        const grid = document.getElementById('imageGrid');
+        const empty = document.getElementById('noImagesMessage');
+        const count = document.getElementById('artsCount');
+        grid.innerHTML = '';
+
+        if (!artImages.length) {
+            empty.style.display = 'block';
+            count.textContent = '';
+            return;
+        }
+
+        empty.style.display = 'none';
+        count.textContent = artImages.length + ' pieces';
+
+        artImages.forEach((src, i) => {
+            const item = document.createElement('div');
+            item.className = 'image-item';
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = 'Artwork ' + (i + 1);
+            img.loading = 'lazy';
+
+            item.appendChild(img);
+            item.addEventListener('click', () => openModal(i));
+            grid.appendChild(item);
+        });
+    }
+
+    function setModalImage() {
+        const img = document.getElementById('modalImage');
+        const title = document.getElementById('modalImageTitle');
+        const counter = document.getElementById('modalImageCounter');
+
+        img.src = artImages[currentImageIndex];
+        img.alt = 'Artwork ' + (currentImageIndex + 1);
+        title.textContent = 'Artwork ' + (currentImageIndex + 1);
+        counter.textContent = (currentImageIndex + 1) + ' / ' + artImages.length;
+
+        document.querySelector('.modal-prev').disabled = currentImageIndex === 0;
+        document.querySelector('.modal-next').disabled = currentImageIndex === artImages.length - 1;
+    }
+
+    function openModal(index) {
+        currentImageIndex = index;
+        setModalImage();
+        document.getElementById('imageModal').classList.add('active');
+        document.body.classList.add('modal-open');
+    }
+
+    function closeModal() {
+        document.getElementById('imageModal').classList.remove('active');
+        document.body.classList.remove('modal-open');
+    }
+
+    function navigateModal(direction) {
+        const next = currentImageIndex + direction;
+        if (next < 0 || next >= artImages.length) return;
+        currentImageIndex = next;
+
+        const img = document.getElementById('modalImage');
+        img.style.opacity = '0';
+        img.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            setModalImage();
+            img.style.opacity = '1';
+            img.style.transform = 'scale(1)';
+        }, 150);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        renderGallery();
+
+        document.querySelector('.modal-close').addEventListener('click', closeModal);
+        document.querySelector('.modal-overlay').addEventListener('click', closeModal);
+        document.querySelector('.modal-prev').addEventListener('click', () => navigateModal(-1));
+        document.querySelector('.modal-next').addEventListener('click', () => navigateModal(1));
+
+        document.addEventListener('keydown', function (e) {
+            if (!document.getElementById('imageModal').classList.contains('active')) return;
+            if (e.key === 'Escape') closeModal();
+            else if (e.key === 'ArrowLeft') navigateModal(-1);
+            else if (e.key === 'ArrowRight') navigateModal(1);
+        });
+    });
+</script>
