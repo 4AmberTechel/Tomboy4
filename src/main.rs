@@ -79,7 +79,7 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         templates.insert(
             "/".to_string(),
             PageTemplate {
-                title: "Home".to_string(),
+                title: "Amber Techel | Actress, Singer-Songwriter & Model".to_string(),
                 content,
             },
         );
@@ -107,7 +107,7 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         templates.insert(
             "/contact/".to_string(),
             PageTemplate {
-                title: "Contact - Under Construction".to_string(),
+                title: "Contact | Amber Techel — Bookings & Inquiries".to_string(),
                 content,
             },
         );
@@ -120,7 +120,7 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         templates.insert(
             "/modeling/".to_string(),
             PageTemplate {
-                title: "Modeling Portfolio".to_string(),
+                title: "Modeling Portfolio | Amber Techel — Headshots & Editorial".to_string(),
                 content,
             },
         );
@@ -133,7 +133,7 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         templates.insert(
             "/bio/".to_string(),
             PageTemplate {
-                title: "Bio".to_string(),
+                title: "Bio | Amber Techel — Actress, Singer-Songwriter & Model".to_string(),
                 content,
             },
         );
@@ -146,7 +146,7 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         templates.insert(
             "/music/".to_string(),
             PageTemplate {
-                title: "Music".to_string(),
+                title: "Music | Amber Techel — Singer-Songwriter & Performer".to_string(),
                 content,
             },
         );
@@ -159,7 +159,7 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         templates.insert(
             "/acting/".to_string(),
             PageTemplate {
-                title: "Acting".to_string(),
+                title: "Acting | Amber Techel — Film, TV & Theater Since 2013".to_string(),
                 content,
             },
         );
@@ -172,7 +172,7 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         templates.insert(
             "/reviews/".to_string(),
             PageTemplate {
-                title: "Reviews".to_string(),
+                title: "Reviews | Amber Techel — Testimonials & Feedback".to_string(),
                 content,
             },
         );
@@ -187,7 +187,7 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         templates.insert(
             "/behind-the-scenes/".to_string(),
             PageTemplate {
-                title: "Behind the Scenes".to_string(),
+                title: "Behind the Scenes | Amber Techel — Film & Shoots".to_string(),
                 content,
             },
         );
@@ -202,7 +202,7 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         templates.insert(
             "/dance/".to_string(),
             PageTemplate {
-                title: "Dance - Under Construction".to_string(),
+                title: "Dance | Amber Techel".to_string(),
                 content,
             },
         );
@@ -217,7 +217,7 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         templates.insert(
             "/arts/".to_string(),
             PageTemplate {
-                title: "Arts - Under Construction".to_string(),
+                title: "Art | Amber Techel — Original Paintings & Drawings".to_string(),
                 content,
             },
         );
@@ -345,11 +345,11 @@ fn generate_modeling_page(content: &str, categories: &HashMap<String, CategoryDa
 
     let base_template = include_str!("../templates/base.html");
     let html = base_template
-        .replace("{{TITLE}}", "Modeling Portfolio")
+        .replace("{{TITLE}}", "Modeling Portfolio | Amber Techel — Headshots & Editorial")
         .replace("{{CONTENT}}", &updated_content);
     inject_seo_head(
         &html,
-        "Modeling Portfolio",
+        "Modeling Portfolio | Amber Techel — Headshots & Editorial",
         "/modeling/",
         "http://127.0.0.1:3000",
     )

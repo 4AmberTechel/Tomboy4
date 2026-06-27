@@ -473,7 +473,7 @@ fn generate_modeling_page(
 
     let base_template = include_str!("../templates/base.html");
     let mut final_html = base_template
-        .replace("{{TITLE}}", "Modeling Portfolio")
+        .replace("{{TITLE}}", "Modeling Portfolio | Amber Techel — Headshots & Editorial")
         .replace("{{CONTENT}}", &updated_content);
 
     // Update navigation links for GitHub Pages (modeling page)
@@ -485,7 +485,7 @@ fn generate_modeling_page(
         &format!(r#"href="/styles.css?v={}""#, version),
     );
 
-    inject_seo_head(&final_html, "Modeling Portfolio", "/modeling/", BASE_URL)
+    inject_seo_head(&final_html, "Modeling Portfolio | Amber Techel — Headshots & Editorial", "/modeling/", BASE_URL)
 }
 
 fn generate_sitemap(output_dir: &Path) {
@@ -663,7 +663,7 @@ fn main() {
 
     // Generate home page
     let home_content = include_str!("../templates/index.html");
-    let home_html = generate_page("Home", home_content, &version, "/");
+    let home_html = generate_page("Amber Techel | Actress, Singer-Songwriter & Model", home_content, &version, "/");
     let home_file_path = docs_dir.join("index.html");
     fs::write(&home_file_path, home_html).expect("Failed to write index.html");
     println!("Generated index.html");
@@ -696,7 +696,7 @@ fn main() {
                     "url('/templates/bio/background/bkgrnd.png')",
                     "url('./background/bkgrnd.webp')",
                 );
-                let html = generate_page("Bio", &updated_content, &version, "/bio/");
+                let html = generate_page("Bio | Amber Techel — Actress, Singer-Songwriter & Model", &updated_content, &version, "/bio/");
                 let file_path = bio_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write bio/index.html");
                 println!("Generated bio/index.html");
@@ -733,7 +733,7 @@ fn main() {
                     "url('/templates/music/background/bkgrnd.png')",
                     "url('./background/bkgrnd.webp')",
                 );
-                let html = generate_page("Music", &updated_content, &version, "/music/");
+                let html = generate_page("Music | Amber Techel — Singer-Songwriter & Performer", &updated_content, &version, "/music/");
                 let file_path = music_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write music/index.html");
                 println!("Generated music/index.html");
@@ -774,7 +774,7 @@ fn main() {
         match fs::read_to_string(&contact_construction_path) {
             Ok(content) => {
                 let html = generate_page(
-                    "Contact - Under Construction",
+                    "Contact | Amber Techel — Bookings & Inquiries",
                     &content,
                     &version,
                     "/contact/",
@@ -815,7 +815,7 @@ fn main() {
                     "url('/templates/acting/Background/bckgrnd.png')",
                     "url('./Background/bckgrnd.webp')",
                 );
-                let html = generate_page("Acting", &updated_content, &version, "/acting/");
+                let html = generate_page("Acting | Amber Techel — Film, TV & Theater Since 2013", &updated_content, &version, "/acting/");
                 let file_path = acting_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write acting/index.html");
                 println!("Generated acting/index.html");
@@ -837,7 +837,7 @@ fn main() {
                 let testimonials = read_testimonials();
                 let testimonials_html = generate_testimonials_html(&testimonials);
                 content = content.replace("{{TESTIMONIALS_HTML}}", &testimonials_html);
-                let html = generate_page("Reviews", &content, &version, "/reviews/");
+                let html = generate_page("Reviews | Amber Techel — Testimonials & Feedback", &content, &version, "/reviews/");
                 let file_path = reviews_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write reviews/index.html");
                 println!("Generated reviews/index.html");
@@ -924,7 +924,7 @@ fn main() {
                     );
 
                 let html = generate_page(
-                    "Behind the Scenes",
+                    "Behind the Scenes | Amber Techel — Film & Shoots",
                     &updated_content,
                     &version,
                     "/behind-the-scenes/",
@@ -950,7 +950,7 @@ fn main() {
         match fs::read_to_string(&dance_path) {
             Ok(content) => {
                 let html =
-                    generate_page("Dance - Under Construction", &content, &version, "/dance/");
+                    generate_page(                    "Dance | Amber Techel", &content, &version, "/dance/");
                 let file_path = dance_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write dance/index.html");
                 println!("Generated dance/index.html (under construction)");
@@ -995,7 +995,7 @@ fn main() {
 
     let arts_content = include_str!("../templates/arts/arts.html");
     let arts_body = arts_content.replace("{{ARTS_IMAGES_JSON}}", &arts_images_json_str);
-    let arts_html = generate_page("Art", &arts_body, &version, "/arts/");
+    let arts_html = generate_page("Art | Amber Techel — Original Paintings & Drawings", &arts_body, &version, "/arts/");
     let arts_file_path = arts_dir.join("index.html");
     fs::write(&arts_file_path, arts_html).expect("Failed to write arts/index.html");
     println!("Generated arts/index.html ({} pieces)", arts_images.len());

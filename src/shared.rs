@@ -155,8 +155,8 @@ pub fn inject_seo_head(html: &str, title: &str, page_url: &str, base_url: &str) 
     let mut og_title_override: Option<String> = None;
     let mut html = html.to_string();
 
-    if let Some(start) = html.find(SEO_TAG) {
-        if let Some(rel_end) = html[start..].find("-->") {
+    if let Some(start) = html.find(SEO_TAG)
+        && let Some(rel_end) = html[start..].find("-->") {
             let end = start + rel_end + 3;
             let inner_start = start + SEO_TAG.len();
             let inner = html[inner_start..start + rel_end].to_string();
@@ -173,7 +173,6 @@ pub fn inject_seo_head(html: &str, title: &str, page_url: &str, base_url: &str) 
             }
             html.replace_range(start..end, "");
         }
-    }
 
     let og_image_url = if og_image_path.starts_with("http") {
         og_image_path.clone()
@@ -197,6 +196,7 @@ pub fn inject_seo_head(html: &str, title: &str, page_url: &str, base_url: &str) 
 
     let og_tags = format!(
         r#"<meta property="og:type" content="website">
+    <meta property="og:site_name" content="4AmberTechel">
     <meta property="og:url" content="{canonical_url}">
     <meta property="og:title" content="{escaped_og_title}">
     <meta property="og:description" content="{escaped_desc}">
