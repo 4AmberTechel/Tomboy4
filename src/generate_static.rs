@@ -744,34 +744,12 @@ fn main() {
         }
     }
 
-    // TODO: Re-add contact page - Generate static contact page
-    // Original implementation commented out below:
-    /*
-    let contact_path = Path::new("templates").join("contact").join("contact.html");
-    if contact_path.exists() {
-        match fs::read_to_string(&contact_path) {
-            Ok(content) => {
-                let html = generate_page("Contact", &content, &version);
-                let file_path = contact_dir.join("index.html");
-                fs::write(&file_path, html).expect("Failed to write contact/index.html");
-                println!("Generated contact/index.html");
-            },
-            Err(e) => {
-                println!("Failed to read contact template: {}", e);
-            }
-        }
-    }
-    */
-
-    // Generate under construction contact page
     let contact_dir = docs_dir.join("contact");
     create_dir_if_not_exists(&contact_dir);
 
-    let contact_construction_path = Path::new("templates")
-        .join("contact")
-        .join("contact-under-construction.html");
-    if contact_construction_path.exists() {
-        match fs::read_to_string(&contact_construction_path) {
+    let contact_path = Path::new("templates").join("contact").join("contact.html");
+    if contact_path.exists() {
+        match fs::read_to_string(&contact_path) {
             Ok(content) => {
                 let html = generate_page(
                     "Contact | Amber Techel — Bookings & Inquiries",
@@ -781,10 +759,10 @@ fn main() {
                 );
                 let file_path = contact_dir.join("index.html");
                 fs::write(&file_path, html).expect("Failed to write contact/index.html");
-                println!("Generated contact/index.html (under construction)");
+                println!("Generated contact/index.html");
             }
             Err(e) => {
-                println!("Failed to read contact under construction template: {}", e);
+                println!("Failed to read contact template: {}", e);
             }
         }
     }

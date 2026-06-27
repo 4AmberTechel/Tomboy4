@@ -1,7 +1,8 @@
-use axum::{Router, http::header, response::Html, routing::get};
-// TODO: Re-add contact page - Form removed
+use axum::{Router, extract::Form, http::header, response::Html, routing::get};
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
+use std::io::Write;
 use std::path::Path;
 use tower_http::services::ServeDir;
 use tower_http::set_header::SetResponseHeaderLayer;
@@ -25,8 +26,6 @@ struct CategoryData {
     background: Option<String>,
 }
 
-// TODO: Re-add contact page - ContactForm struct for form submissions
-/*
 #[derive(Deserialize)]
 struct ContactForm {
     name: String,
@@ -34,7 +33,6 @@ struct ContactForm {
     subject: String,
     message: String,
 }
-*/
 
 fn generate_page(title: &str, content: &str, page_url: &str) -> String {
     let base_template = include_str!("../templates/base.html");
@@ -85,25 +83,9 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         );
     }
 
-    // TODO: Re-add contact page - Currently showing under construction
-    // Original contact page implementation commented out below:
-    /*
     let contact_path = templates_dir.join("contact").join("contact.html");
     if contact_path.exists() {
         let content = fs::read_to_string(&contact_path)?;
-        templates.insert("/contact/".to_string(), PageTemplate {
-            title: "Contact".to_string(),
-            content,
-        });
-    }
-    */
-
-    // Temporary under construction contact page
-    let contact_construction_path = templates_dir
-        .join("contact")
-        .join("contact-under-construction.html");
-    if contact_construction_path.exists() {
-        let content = fs::read_to_string(&contact_construction_path)?;
         templates.insert(
             "/contact/".to_string(),
             PageTemplate {
@@ -390,7 +372,6 @@ async fn home_page_handler(
     }
 }
 
-// TODO: Re-add contact page - Contact page GET handler (serves under-construction template)
 // Contact page handler
 async fn contact_page_handler(
     templates: axum::extract::State<HashMap<String, PageTemplate>>,
@@ -562,13 +543,7 @@ async fn unified_modeling_handler(
     }
 }
 
-// TODO: Re-add contact page - Contact form POST handler
-// Original form submission handler commented out below:
-/*
 async fn contact_form_handler(Form(form): Form<ContactForm>) -> Html<String> {
-    use std::fs::OpenOptions;
-    use std::io::Write;
-
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
@@ -581,7 +556,7 @@ async fn contact_form_handler(Form(form): Form<ContactForm>) -> Html<String> {
     );
 
     let messages_file = "messages.txt";
-    match OpenOptions::new()
+    match fs::OpenOptions::new()
         .create(true)
         .append(true)
         .open(messages_file)
@@ -592,7 +567,7 @@ async fn contact_form_handler(Form(form): Form<ContactForm>) -> Html<String> {
             } else {
                 println!("New message saved from: {} - Subject: {}", form.name, form.subject);
             }
-        },
+        }
         Err(e) => {
             println!("Error opening messages file: {}", e);
         }
@@ -608,7 +583,6 @@ async fn contact_form_handler(Form(form): Form<ContactForm>) -> Html<String> {
         "#, form.name
     ))
 }
-*/
 
 fn get_lan_ip() -> Option<std::net::IpAddr> {
     let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
@@ -651,8 +625,7 @@ async fn main() {
         .route("/behind-the-scenes/", get(bts_page_handler))
         .route("/dance/", get(dance_page_handler))
         .route("/arts/", get(arts_page_handler))
-        // TODO: Re-add contact page - POST handler removed temporarily
-        .route("/contact/", get(contact_page_handler)) // .post(contact_form_handler) removed
+        .route("/contact/", get(contact_page_handler).post(contact_form_handler))
         .nest_service("/docs", ServeDir::new("docs"))
         .nest_service("/templates", ServeDir::new("templates"))
         .with_state(templates.clone())
