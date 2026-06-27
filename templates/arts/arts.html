@@ -3,6 +3,34 @@ og:title: Amber Techel Art & Jewelry | Original Works
 description: Original artwork and handmade jewelry by Amber Techel - paintings, drawings, figure studies, and mixed-media pieces.
 og:image: /global-images/og-image.webp
 -->
+<style>
+    .modal-purchase-wrapper {
+        text-align: center;
+        margin-top: 1rem;
+        display: none;
+    }
+
+    .modal-purchase-wrapper.active {
+        display: block;
+    }
+
+    .purchase-btn {
+        display: inline-block;
+        padding: 0.8rem 1.5rem;
+        background: linear-gradient(45deg, #ff6b9d, #6b73ff);
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: bold;
+        font-size: 0.95rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .purchase-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(107, 115, 255, 0.3);
+    }
+</style>
 <style id="dynamicBackground">
     .main-content {
         background-size: cover;
@@ -53,6 +81,11 @@ og:image: /global-images/og-image.webp
                 <div class="modal-caption">
                     <span id="modalImageTitle"></span>
                     <span id="modalImageCounter"></span>
+                </div>
+                <div class="modal-purchase-wrapper" id="modalPurchaseBtn">
+                    <a href="/contact/" class="purchase-btn">
+                        I'd like to purchase this
+                    </a>
                 </div>
             </div>
 
@@ -151,6 +184,13 @@ og:image: /global-images/og-image.webp
         document.getElementById('modalImage').alt = title;
         document.getElementById('modalImageTitle').textContent = title;
         document.getElementById('modalImageCounter').textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+
+        const purchaseBtn = document.getElementById('modalPurchaseBtn');
+        if (category === 'For Sale') {
+            purchaseBtn.classList.add('active');
+        } else {
+            purchaseBtn.classList.remove('active');
+        }
 
         updateNavButtons();
 
