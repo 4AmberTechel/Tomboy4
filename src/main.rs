@@ -199,7 +199,7 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         templates.insert(
             "/arts/".to_string(),
             PageTemplate {
-                title: "Art | Amber Techel — Original Paintings & Drawings".to_string(),
+                title: "Art & Jewelry | Amber Techel — Original Works".to_string(),
                 content,
             },
         );
@@ -258,6 +258,84 @@ fn discover_modeling_categories() -> HashMap<String, CategoryData> {
                 .iter()
                 .find(|f| background_dir.join(f).exists())
                 .map(|f| format!("/templates/modeling/{}/Background/{}", category_name, f));
+
+                categories.insert(
+                    category_name,
+                    CategoryData {
+                        title,
+                        subtitle,
+                        images,
+                        links,
+                        background,
+                    },
+                );
+            }
+        }
+    }
+
+    categories
+}
+
+fn discover_arts_categories() -> HashMap<String, CategoryData> {
+    let mut categories = HashMap::new();
+    let arts_dir = Path::new("templates").join("arts");
+
+    if !arts_dir.exists() {
+        return categories;
+    }
+
+    if let Ok(entries) = fs::read_dir(&arts_dir) {
+        for entry in entries.flatten() {
+            if entry.path().is_dir() {
+                let category_name = entry.file_name().to_str().unwrap_or("").to_string();
+
+                let images_dir = entry.path().join("images");
+                if !images_dir.exists() {
+                    continue;
+                }
+
+                let title = {
+                    let mut chars = category_name.chars();
+                    match chars.next() {
+                        None => continue,
+                        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                    }
+                };
+
+                let subtitle_file = entry.path().join("subtitle.txt");
+                let subtitle = if subtitle_file.exists() {
+                    fs::read_to_string(&subtitle_file)
+                        .map(|s| s.trim().to_string())
+                        .unwrap_or_else(|_| format!("{} collection", category_name))
+                } else {
+                    format!("{} collection", category_name)
+                };
+
+                let mut images = Vec::new();
+                if let Ok(img_entries) = fs::read_dir(&images_dir) {
+                    for img_entry in img_entries.flatten() {
+                        if let Some(ext) = img_entry.path().extension()
+                            && ext.to_str().is_some_and(is_image_extension)
+                            && let Some(filename) = img_entry.file_name().to_str()
+                        {
+                            let url_encoded = url_encode(filename);
+                            images.push(format!(
+                                "/templates/arts/{}/images/{}",
+                                category_name, url_encoded
+                            ));
+                        }
+                    }
+                }
+                images.sort();
+
+                let links = HashMap::new();
+                let background_dir = entry.path().join("Background");
+                let background = [
+                    "bkgrnd.png", "bkgrnd.jpg", "bkgrnd.jpeg", "bkgrnd.PNG", "bkgrnd.JPG",
+                ]
+                .iter()
+                .find(|f| background_dir.join(f).exists())
+                .map(|f| format!("/templates/arts/{}/Background/{}", category_name, f));
 
                 categories.insert(
                     category_name,
@@ -465,11 +543,11 @@ async fn arts_page_handler(
     templates: axum::extract::State<HashMap<String, PageTemplate>>,
 ) -> Result<Html<String>, axum::response::Response> {
     if let Some(template) = templates.get("/arts/") {
-        Ok(Html(generate_page(
-            &template.title,
-            &template.content,
-            "/arts/",
-        )))
+        let categories = discover_arts_categories();
+        let categories_json = generate_categories_json(&categories);
+        let content = template.content.replace("{{CATEGORIES_JSON}}", &categories_json);
+        let html_content = generate_page(&template.title, &content, "/arts/");
+        Ok(Html(html_content))
     } else {
         Err(not_found_response("arts"))
     }

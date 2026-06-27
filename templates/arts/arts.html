@@ -1,22 +1,34 @@
 <!-- SEO
-og:title: Amber Techel Art | Original Paintings & Drawings
-description: Original artwork by Amber Techel - paintings, drawings, figure studies, and mixed-media pieces.
+og:title: Amber Techel Art & Jewelry | Original Works
+description: Original artwork and handmade jewelry by Amber Techel - paintings, drawings, figure studies, and mixed-media pieces.
 og:image: /global-images/og-image.webp
 -->
+<style id="dynamicBackground">
+    .main-content {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+</style>
 <section class="modeling-section-page">
     <div class="modeling-header">
-        <h1 class="modeling-title">Art</h1>
-        <p class="modeling-tagline">Original Works | Paintings | Drawings | Figure Studies</p>
+        <h1 class="modeling-title">Art & Jewelry</h1>
+        <p class="modeling-tagline">Original Works | Paintings | Drawings | Handmade Jewelry</p>
     </div>
 
     <div class="modeling-content">
         <div class="modeling-intro">
-            <p>A collection of original artwork by Amber Techel - paintings, drawings, figure studies, and
-                mixed-media pieces created over the years. Select any piece to view it larger and browse the
-                full gallery.</p>
+            <p>A collection of original artwork and handmade creations by Amber Techel - paintings, drawings, figure studies,
+                mixed-media pieces, and jewelry. Select any piece to view it larger and browse the full gallery.</p>
         </div>
 
-        <p class="page-subtitle" id="artsCount"></p>
+        <div class="category-selector">
+            <select id="categorySelect" onchange="switchCategory()">
+            </select>
+        </div>
+
+        <p class="page-subtitle" id="categorySubtitle"></p>
 
         <div class="image-grid" id="imageGrid"></div>
 
@@ -55,56 +67,93 @@ og:image: /global-images/og-image.webp
 </section>
 
 <script>
-    const artImages = {{ARTS_IMAGES_JSON}};
-    let currentImageIndex = 0;
+    const categoryData = {{CATEGORIES_JSON}};
 
-    function renderGallery() {
-        const grid = document.getElementById('imageGrid');
-        const empty = document.getElementById('noImagesMessage');
-        const count = document.getElementById('artsCount');
-        grid.innerHTML = '';
+    function populateDropdown() {
+        const select = document.getElementById('categorySelect');
+        select.innerHTML = '';
 
-        if (!artImages.length) {
-            empty.style.display = 'block';
-            count.textContent = '';
+        const categories = Object.keys(categoryData);
+        categories.forEach(key => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = categoryData[key].title;
+            select.appendChild(option);
+        });
+
+        if (categories.length > 0) {
+            switchCategory();
+        }
+    }
+
+    function switchCategory() {
+        if (document.getElementById('imageModal').classList.contains('active')) {
+            closeModal();
+        }
+
+        const select = document.getElementById('categorySelect');
+        const category = select.value;
+        const data = categoryData[category];
+
+        if (!data) return;
+
+        document.getElementById('categorySubtitle').textContent = data.subtitle;
+
+        const mainContent = document.querySelector('.main-content');
+        if (data.background) {
+            mainContent.style.backgroundImage = `url('${data.background}')`;
+        } else {
+            mainContent.style.backgroundImage = 'none';
+        }
+
+        const imageGrid = document.getElementById('imageGrid');
+        const noImagesMessage = document.getElementById('noImagesMessage');
+        imageGrid.innerHTML = '';
+
+        if (data.images.length === 0) {
+            noImagesMessage.style.display = 'block';
             return;
         }
 
-        empty.style.display = 'none';
-        count.textContent = artImages.length + ' pieces';
+        noImagesMessage.style.display = 'none';
 
-        artImages.forEach((src, i) => {
-            const item = document.createElement('div');
-            item.className = 'image-item';
+        data.images.forEach((imagePath, index) => {
+            const imageItem = document.createElement('div');
+            imageItem.className = 'image-item';
 
             const img = document.createElement('img');
-            img.src = src;
-            img.alt = 'Artwork ' + (i + 1);
+            img.src = imagePath;
+            img.alt = `${data.title} ${index + 1}`;
             img.loading = 'lazy';
 
-            item.appendChild(img);
-            item.addEventListener('click', () => openModal(i));
-            grid.appendChild(item);
+            imageItem.appendChild(img);
+            imageItem.addEventListener('click', function () {
+                openModal(imagePath, `${data.title} ${index + 1}`, index);
+            });
+            imageGrid.appendChild(imageItem);
         });
     }
 
-    function setModalImage() {
-        const img = document.getElementById('modalImage');
-        const title = document.getElementById('modalImageTitle');
-        const counter = document.getElementById('modalImageCounter');
+    let currentImages = [];
+    let currentImageIndex = 0;
+    let currentCategoryTitle = '';
 
-        img.src = artImages[currentImageIndex];
-        img.alt = 'Artwork ' + (currentImageIndex + 1);
-        title.textContent = 'Artwork ' + (currentImageIndex + 1);
-        counter.textContent = (currentImageIndex + 1) + ' / ' + artImages.length;
+    function openModal(imagePath, title, imageIndex) {
+        const select = document.getElementById('categorySelect');
+        const category = select.value;
+        const data = categoryData[category];
 
-        document.querySelector('.modal-prev').disabled = currentImageIndex === 0;
-        document.querySelector('.modal-next').disabled = currentImageIndex === artImages.length - 1;
-    }
+        currentImages = data.images;
+        currentCategoryTitle = data.title;
+        currentImageIndex = imageIndex;
 
-    function openModal(index) {
-        currentImageIndex = index;
-        setModalImage();
+        document.getElementById('modalImage').src = imagePath;
+        document.getElementById('modalImage').alt = title;
+        document.getElementById('modalImageTitle').textContent = title;
+        document.getElementById('modalImageCounter').textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+
+        updateNavButtons();
+
         document.getElementById('imageModal').classList.add('active');
         document.body.classList.add('modal-open');
     }
@@ -115,22 +164,37 @@ og:image: /global-images/og-image.webp
     }
 
     function navigateModal(direction) {
-        const next = currentImageIndex + direction;
-        if (next < 0 || next >= artImages.length) return;
-        currentImageIndex = next;
+        const newIndex = currentImageIndex + direction;
+        if (newIndex < 0 || newIndex >= currentImages.length) return;
 
-        const img = document.getElementById('modalImage');
-        img.style.opacity = '0';
-        img.style.transform = 'scale(0.95)';
+        currentImageIndex = newIndex;
+        const imagePath = currentImages[currentImageIndex];
+
+        const modalImage = document.getElementById('modalImage');
+        const modalTitle = document.getElementById('modalImageTitle');
+        const modalCounter = document.getElementById('modalImageCounter');
+
+        modalImage.style.opacity = '0';
+        modalImage.style.transform = 'scale(0.95)';
+
         setTimeout(() => {
-            setModalImage();
-            img.style.opacity = '1';
-            img.style.transform = 'scale(1)';
+            modalImage.src = imagePath;
+            modalImage.alt = `${currentCategoryTitle} ${currentImageIndex + 1}`;
+            modalTitle.textContent = `${currentCategoryTitle} ${currentImageIndex + 1}`;
+            modalCounter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+            updateNavButtons();
+            modalImage.style.opacity = '1';
+            modalImage.style.transform = 'scale(1)';
         }, 150);
     }
 
+    function updateNavButtons() {
+        document.querySelector('.modal-prev').disabled = currentImageIndex === 0;
+        document.querySelector('.modal-next').disabled = currentImageIndex === currentImages.length - 1;
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
-        renderGallery();
+        populateDropdown();
 
         document.querySelector('.modal-close').addEventListener('click', closeModal);
         document.querySelector('.modal-overlay').addEventListener('click', closeModal);

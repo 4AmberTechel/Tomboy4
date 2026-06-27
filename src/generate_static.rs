@@ -422,6 +422,79 @@ fn discover_modeling_categories(docs_dir: &Path) -> Vec<(String, CategoryData)> 
     categories
 }
 
+fn discover_arts_categories(docs_dir: &Path) -> Vec<(String, CategoryData)> {
+    let mut categories = Vec::new();
+    let arts_dir = Path::new("templates").join("arts");
+
+    if !arts_dir.exists() {
+        return categories;
+    }
+
+    if let Ok(entries) = fs::read_dir(&arts_dir) {
+        for entry in entries.flatten() {
+            if entry.path().is_dir() {
+                let category_name = entry.file_name().to_str().unwrap_or("").to_string();
+
+                let images_dir = entry.path().join("images");
+                if !images_dir.exists() {
+                    continue;
+                }
+
+                let title = {
+                    let mut chars = category_name.chars();
+                    match chars.next() {
+                        None => continue,
+                        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                    }
+                };
+
+                let subtitle_file = entry.path().join("subtitle.txt");
+                let subtitle = if subtitle_file.exists() {
+                    fs::read_to_string(&subtitle_file)
+                        .map(|s| s.trim().to_string())
+                        .unwrap_or_else(|_| format!("{} collection", category_name))
+                } else {
+                    format!("{} collection", category_name)
+                };
+
+                let docs_images_dir = docs_dir.join("arts").join(&category_name).join("images");
+                convert_and_copy_images(&images_dir, &docs_images_dir);
+
+                let images = get_image_list_for_web(&images_dir, &category_name);
+
+                let background_dir = entry.path().join("Background");
+                let has_bg = [
+                    "bkgrnd.png", "bkgrnd.jpg", "bkgrnd.jpeg", "bkgrnd.PNG", "bkgrnd.JPG",
+                ]
+                .iter()
+                .any(|f| background_dir.join(f).exists());
+                let background = if has_bg {
+                    let docs_bg_dir = docs_dir.join("arts").join(&category_name).join("Background");
+                    create_dir_if_not_exists(&docs_bg_dir);
+                    convert_and_copy_images(&background_dir, &docs_bg_dir);
+                    Some(format!("./{}/Background/bkgrnd.webp", category_name))
+                } else {
+                    None
+                };
+
+                categories.push((
+                    category_name,
+                    CategoryData {
+                        title,
+                        subtitle,
+                        images,
+                        links: HashMap::new(),
+                        background,
+                    },
+                ));
+            }
+        }
+    }
+
+    categories.sort_by(|a, b| a.0.cmp(&b.0));
+    categories
+}
+
 fn generate_categories_json(categories: &[(String, CategoryData)]) -> String {
     let mut json_parts = Vec::new();
 
@@ -940,43 +1013,19 @@ fn main() {
     let arts_dir = docs_dir.join("arts");
     create_dir_if_not_exists(&arts_dir);
 
-    let arts_images_src = Path::new("templates").join("arts").join("Art");
-    let arts_images_dest = arts_dir.join("Art");
-    if arts_images_src.exists() {
-        create_dir_if_not_exists(&arts_images_dest);
-        convert_and_copy_images(&arts_images_src, &arts_images_dest);
+    let arts_categories = discover_arts_categories(docs_dir);
+    println!("\nArts categories discovered:");
+    for (name, data) in &arts_categories {
+        println!("  - {} ({} pieces)", name, data.images.len());
     }
-
-    let mut arts_images = Vec::new();
-    if arts_images_src.exists()
-        && let Ok(entries) = fs::read_dir(&arts_images_src)
-    {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if let Some(ext) = path.extension().and_then(|e| e.to_str())
-                && is_image_extension(ext)
-                && let Some(stem) = path.file_stem()
-            {
-                let webp_name = format!("{}.webp", stem.to_string_lossy());
-                let url_encoded = url_encode(&webp_name);
-                arts_images.push(format!("./Art/{}", url_encoded));
-            }
-        }
-    }
-    arts_images.sort();
-
-    let arts_images_json: Vec<String> = arts_images
-        .iter()
-        .map(|img| format!("\"{}\"", img))
-        .collect();
-    let arts_images_json_str = format!("[{}]", arts_images_json.join(", "));
 
     let arts_content = include_str!("../templates/arts/arts.html");
-    let arts_body = arts_content.replace("{{ARTS_IMAGES_JSON}}", &arts_images_json_str);
-    let arts_html = generate_page("Art | Amber Techel — Original Paintings & Drawings", &arts_body, &version, "/arts/");
+    let arts_categories_json = generate_categories_json(&arts_categories);
+    let arts_body = arts_content.replace("{{CATEGORIES_JSON}}", &arts_categories_json);
+    let arts_html = generate_page("Art & Jewelry | Amber Techel — Original Works", &arts_body, &version, "/arts/");
     let arts_file_path = arts_dir.join("index.html");
     fs::write(&arts_file_path, arts_html).expect("Failed to write arts/index.html");
-    println!("Generated arts/index.html ({} pieces)", arts_images.len());
+    println!("Generated arts/index.html");
 
     generate_sitemap(docs_dir);
     generate_robots_txt(docs_dir);
