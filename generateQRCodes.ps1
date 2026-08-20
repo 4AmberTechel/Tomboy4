@@ -307,14 +307,14 @@ function ConvertTo-QrPdf {
             $cellLeft = $margin + $col * ($cellW + $gap)
             $cellCenter = $cellLeft + $cellW / 2
 
-            $nameWidth = Measure-PdfText -text $name -bold $true -fontSize 18
+            $nameWidth = Measure-PdfText -text $name -bold $true -fontSize 14
             $priceWidth = Measure-PdfText -text $price -bold $false -fontSize 20
 
             $nameX = $cellCenter - $nameWidth / 2
             $priceX = $cellCenter - $priceWidth / 2
 
             $labelY = $y - 12
-            [void]$contentBuilder.AppendLine("BT /F2 18 Tf $nameX $labelY Td ($name) Tj ET")
+            [void]$contentBuilder.AppendLine("BT /F2 14 Tf $nameX $labelY Td ($name) Tj ET")
             [void]$contentBuilder.AppendLine("BT /F1 20 Tf $priceX $($labelY - 30) Td ($price) Tj ET")
         }
 
