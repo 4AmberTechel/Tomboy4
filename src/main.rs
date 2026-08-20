@@ -95,6 +95,19 @@ fn discover_templates() -> Result<HashMap<String, PageTemplate>, Box<dyn std::er
         );
     }
 
+    // Handle order page
+    let order_path = templates_dir.join("order").join("order.html");
+    if order_path.exists() {
+        let content = fs::read_to_string(&order_path)?;
+        templates.insert(
+            "/order/".to_string(),
+            PageTemplate {
+                title: "Order Merch | Amber Techel — Shop Signed Photos, Apparel & Music".to_string(),
+                content,
+            },
+        );
+    }
+
     // Handle unified modeling page
     let modeling_path = templates_dir.join("modeling").join("modeling.html");
     if modeling_path.exists() {
@@ -462,6 +475,18 @@ async fn contact_page_handler(
     }
 }
 
+// Order page handler
+async fn order_page_handler(
+    templates: axum::extract::State<HashMap<String, PageTemplate>>,
+) -> Result<Html<String>, axum::response::Response> {
+    if let Some(template) = templates.get("/order/") {
+        let html_content = generate_page(&template.title, &template.content, "/order/");
+        Ok(Html(html_content))
+    } else {
+        Err(not_found_response("order"))
+    }
+}
+
 // Bio page handler
 async fn bio_page_handler(
     templates: axum::extract::State<HashMap<String, PageTemplate>>,
@@ -704,6 +729,7 @@ async fn main() {
         .route("/dance/", get(dance_page_handler))
         .route("/arts/", get(arts_page_handler))
         .route("/contact/", get(contact_page_handler).post(contact_form_handler))
+        .route("/order/", get(order_page_handler))
         .nest_service("/docs", ServeDir::new("docs"))
         .nest_service("/templates", ServeDir::new("templates"))
         .with_state(templates.clone())
@@ -721,7 +747,7 @@ async fn main() {
     }
     println!("Available pages:");
     println!(
-        "  /  /bio  /acting  /music  /modeling  /reviews  /behind-the-scenes  /dance  /arts  /contact"
+        "  /  /bio  /acting  /music  /modeling  /reviews  /behind-the-scenes  /dance  /arts  /contact  /order"
     );
 
     axum::serve(listener, app).await.unwrap();

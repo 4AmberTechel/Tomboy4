@@ -63,6 +63,10 @@ fn apply_github_pages_nav_links(html: String) -> String {
         r#"<a href="/contact/" class="nav-item">Contact</a>"#,
         r#"<a href="/contact" class="nav-item">Contact</a>"#,
     )
+    .replace(
+        r#"<a href="/order/" class="nav-item">Order</a>"#,
+        r#"<a href="/order" class="nav-item">Order</a>"#,
+    )
 }
 
 fn generate_page(title: &str, content: &str, version: &str, page_url: &str) -> String {
@@ -571,6 +575,7 @@ fn generate_sitemap(output_dir: &Path) {
   <url><loc>https://4ambertechel.com/modeling/</loc></url>
   <url><loc>https://4ambertechel.com/reviews/</loc></url>
   <url><loc>https://4ambertechel.com/contact/</loc></url>
+  <url><loc>https://4ambertechel.com/order/</loc></url>
   <url><loc>https://4ambertechel.com/behind-the-scenes/</loc></url>
 </urlset>"#;
 
@@ -836,6 +841,29 @@ fn main() {
             }
             Err(e) => {
                 println!("Failed to read contact template: {}", e);
+            }
+        }
+    }
+
+    let order_dir = docs_dir.join("order");
+    create_dir_if_not_exists(&order_dir);
+
+    let order_path = Path::new("templates").join("order").join("order.html");
+    if order_path.exists() {
+        match fs::read_to_string(&order_path) {
+            Ok(content) => {
+                let html = generate_page(
+                    "Order Merch | Amber Techel — Shop Signed Photos, Apparel & Music",
+                    &content,
+                    &version,
+                    "/order/",
+                );
+                let file_path = order_dir.join("index.html");
+                fs::write(&file_path, html).expect("Failed to write order/index.html");
+                println!("Generated order/index.html");
+            }
+            Err(e) => {
+                println!("Failed to read order template: {}", e);
             }
         }
     }
