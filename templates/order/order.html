@@ -62,7 +62,6 @@
         <p class="clipboard-message">Your order number and email have been copied to your clipboard.</p>
         <p class="clipboard-warning">Make sure to <strong>paste it into the note</strong> when you pay in CashApp so
             we can match your payment to your order.</p>
-        <div class="clipboard-code" id="clipboard-code">----</div>
         <button class="clipboard-btn" id="clipboard-ok" type="button">I Understand — Open CashApp</button>
     </div>
 </div>
@@ -290,19 +289,6 @@
         color: #ff6b9d;
     }
 
-    .clipboard-code {
-        font-size: 1.4rem;
-        font-weight: bold;
-        letter-spacing: 2px;
-        color: #6b73ff;
-        font-family: monospace;
-        margin-bottom: 1.5rem;
-        user-select: all;
-        background: rgba(107, 115, 255, 0.06);
-        padding: 0.8rem;
-        border-radius: 10px;
-    }
-
     .clipboard-btn {
         width: 100%;
         padding: 1rem;
@@ -481,7 +467,6 @@
         const noteText = copyOrderInfo(orderNumber, email);
         pendingOrder = { form, orderNumber, total, noteText };
 
-        document.getElementById('clipboard-code').textContent = noteText;
         document.getElementById('clipboard-modal').classList.add('show');
     }
 
