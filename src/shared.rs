@@ -22,6 +22,8 @@ pub struct Product {
     pub price: Option<f64>,
     #[serde(default)]
     pub description: Option<String>,
+    #[serde(default)]
+    pub image: Option<String>,
 }
 
 pub fn read_products() -> Vec<Product> {

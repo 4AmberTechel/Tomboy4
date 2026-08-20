@@ -955,6 +955,23 @@ fn main() {
     let order_dir = docs_dir.join("order");
     create_dir_if_not_exists(&order_dir);
 
+    // Copy product images into docs/order/images/
+    let src_images = Path::new("products").join("images");
+    let dst_images = order_dir.join("images");
+    if src_images.exists() {
+        create_dir_if_not_exists(&dst_images);
+        if let Ok(entries) = fs::read_dir(&src_images) {
+            for entry in entries.flatten() {
+                let src = entry.path();
+                if src.is_file() {
+                    let dest = dst_images.join(src.file_name().unwrap_or_default());
+                    let _ = fs::copy(&src, &dest);
+                }
+            }
+        }
+        println!("Copied product images to order/images");
+    }
+
     let order_path = Path::new("templates").join("order").join("order.html");
     if order_path.exists() {
         match fs::read_to_string(&order_path) {

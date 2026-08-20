@@ -735,6 +735,7 @@ async fn main() {
         .route("/order/", get(order_page_handler))
         .nest_service("/docs", ServeDir::new("docs"))
         .nest_service("/templates", ServeDir::new("templates"))
+        .nest_service("/order/images", ServeDir::new("products/images"))
         .with_state(templates.clone())
         .layer(SetResponseHeaderLayer::overriding(
             header::CACHE_CONTROL,

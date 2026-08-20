@@ -12,6 +12,7 @@
             <div class="order-form">
                 <h2 id="order-title">Place Your Order</h2>
                 <div class="product-description" id="product-description" style="display:none"></div>
+                <div class="product-image" id="product-image" style="display:none"></div>
                 <form class="message-form" id="order-form" onsubmit="handleAddToCart(event)">
                     <div id="form-status" class="form-status"></div>
 
@@ -473,6 +474,19 @@
         line-height: 1.5;
     }
 
+    .product-image {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .product-image img {
+        max-width: 100%;
+        max-height: 280px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        object-fit: contain;
+    }
+
     .form-group {
         margin-bottom: 1.5rem;
     }
@@ -901,6 +915,15 @@
             descBox.style.display = 'block';
         } else if (descBox) {
             descBox.style.display = 'none';
+        }
+
+        const imgBox = document.getElementById('product-image');
+        if (imgBox && product.image) {
+            const imgSrc = '/order/images/' + product.image.replace(/^images\//, '');
+            imgBox.innerHTML = '<img src="' + imgSrc + '" alt="' + product.name + '">';
+            imgBox.style.display = 'block';
+        } else if (imgBox) {
+            imgBox.style.display = 'none';
         }
 
         showStatus(product.name + ' selected. Set quantity and click Add to Cart.', 'success');
