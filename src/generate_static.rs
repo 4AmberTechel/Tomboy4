@@ -587,6 +587,117 @@ fn generate_robots_txt(output_dir: &Path) {
     println!("Generated robots.txt");
 }
 
+fn generate_404(output_dir: &Path, version: &str) {
+    let products = read_products();
+    let products_json = serde_json::to_string(&products).unwrap_or_else(|_| "[]".to_string());
+
+    let product_links = products
+        .iter()
+        .map(|p| {
+            format!(
+                r#"<a href="/order/{}/" class="product-link">{}</a>"#,
+                p.code, p.name
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    let content = format!(
+        r#"<div class="page-section">
+    <h1 class="page-title" id="nf-title">Page Not Found</h1>
+    <p class="page-subtitle" id="nf-subtitle">Sorry, the page you're looking for doesn't exist.</p>
+
+    <div class="nf-box" id="nf-order-box" style="display:none">
+        <p id="nf-product-message"></p>
+        <h3>Available products:</h3>
+        <div class="product-links">{product_links}</div>
+    </div>
+
+    <div class="nf-box" id="nf-generic-box">
+        <p>Try one of the pages below:</p>
+        <div class="product-links">
+            <a href="/" class="product-link">Home</a>
+            <a href="/bio/" class="product-link">Bio</a>
+            <a href="/acting/" class="product-link">Acting</a>
+            <a href="/music/" class="product-link">Music</a>
+            <a href="/modeling/" class="product-link">Modeling</a>
+            <a href="/reviews/" class="product-link">Reviews</a>
+            <a href="/contact/" class="product-link">Contact</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .nf-box {{
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        max-width: 700px;
+        margin: 2rem auto;
+        text-align: center;
+    }}
+
+    .nf-box h3 {{
+        color: #6b73ff;
+        margin-bottom: 1rem;
+    }}
+
+    .nf-box p {{
+        color: #666;
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+    }}
+
+    .product-links {{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        justify-content: center;
+    }}
+
+    .product-link {{
+        display: inline-block;
+        padding: 0.7rem 1.5rem;
+        background: linear-gradient(45deg, #ff6b9d, #6b73ff);
+        border-radius: 25px;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }}
+
+    .product-link:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(107, 115, 255, 0.3);
+    }}
+</style>
+
+<script>
+    const PRODUCTS = {products_json};
+    const segments = window.location.pathname.split('/').filter(Boolean);
+    if (segments.length >= 2 && segments[0] === 'order') {{
+        const code = (segments[segments.length - 1] || '').toUpperCase();
+        const product = PRODUCTS.find(p => p.code.toUpperCase() === code);
+        if (!product) {{
+            document.getElementById('nf-title').textContent = 'Product Not Found';
+            document.getElementById('nf-subtitle').textContent = 'That product link is invalid.';
+            document.getElementById('nf-order-box').style.display = 'block';
+            document.getElementById('nf-product-message').textContent =
+                "We couldn't find a product matching code '" + code + "'. Check the URL and try again, or pick one of the available products below:";
+            document.getElementById('nf-generic-box').style.display = 'none';
+        }}
+    }}
+</script>"#
+    );
+
+    let html = generate_page("Page Not Found | Amber Techel", &content, version, "/404/");
+
+    let path = output_dir.join("404.html");
+    fs::write(&path, &html).expect("Failed to write 404.html");
+    println!("Generated 404.html");
+}
+
 fn create_dir_if_not_exists(path: &Path) {
     if !path.exists() {
         fs::create_dir_all(path)
@@ -1072,6 +1183,7 @@ fn main() {
 
     generate_sitemap(docs_dir);
     generate_robots_txt(docs_dir);
+    generate_404(docs_dir, &version);
 
     println!("\nStatic files generated successfully!");
 }
