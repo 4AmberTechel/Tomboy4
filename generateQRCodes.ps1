@@ -129,6 +129,67 @@ function ConvertTo-QrPdf {
         return ($s -replace '\\', '\\\\') -replace '\(', '\(' -replace '\)', '\)'
     }
 
+    function Measure-PdfText {
+        param([string]$text, [bool]$bold, [int]$fontSize)
+        $units = 0
+        foreach ($ch in $text.ToCharArray()) {
+            $units += Get-CharWidth -ch $ch -bold $bold
+        }
+        return $units * $fontSize / 1000.0
+    }
+
+    function Get-CharWidth {
+        param([char]$ch, [bool]$bold)
+        $b = $ch -eq 'B' -or $bold
+        switch -Regex ($ch.ToString()) {
+            '^[0-9]$' { if ($bold) { return 556 } else { return 556 } }
+            '^[cfsiIt]$' { if ($bold) { return 333 } else { return 278 } }
+            '^[a]$' { if ($bold) { return 556 } else { return 556 } }
+            '^[j]$' { if ($bold) { return 278 } else { return 222 } }
+            '^[l]$' { if ($bold) { return 278 } else { return 222 } }
+            '^[n]$' { if ($bold) { return 611 } else { return 556 } }
+            '^[m]$' { if ($bold) { return 889 } else { return 833 } }
+            '^[r]$' { if ($bold) { return 389 } else { return 333 } }
+            '^[s]$' { if ($bold) { return 556 } else { return 500 } }
+            '^[b]$' { if ($bold) { return 611 } else { return 556 } }
+            '^[d]$' { if ($bold) { return 611 } else { return 556 } }
+            '^[e]$' { if ($bold) { return 556 } else { return 556 } }
+            '^[g]$' { if ($bold) { return 611 } else { return 556 } }
+            '^[h]$' { if ($bold) { return 611 } else { return 556 } }
+            '^[o]$' { if ($bold) { return 611 } else { return 556 } }
+            '^[p]$' { if ($bold) { return 611 } else { return 556 } }
+            '^[q]$' { if ($bold) { return 611 } else { return 556 } }
+            '^[u]$' { if ($bold) { return 611 } else { return 556 } }
+            '^[v]$' { if ($bold) { return 556 } else { return 500 } }
+            '^[w]$' { if ($bold) { return 778 } else { return 722 } }
+            '^[x]$' { if ($bold) { return 556 } else { return 500 } }
+            '^[y]$' { if ($bold) { return 556 } else { return 500 } }
+            '^[z]$' { if ($bold) { return 500 } else { return 500 } }
+            '^[A-Z]$' {
+                $map = @{ 'A' = 722; 'B' = 722; 'C' = 722; 'D' = 722; 'E' = 667; 'F' = 611; 'G' = 778; 'H' = 722;
+                    'I' = 278; 'J' = 556; 'K' = 722; 'L' = 611; 'M' = 833; 'N' = 722; 'O' = 778; 'P' = 667;
+                    'Q' = 778; 'R' = 722; 'S' = 667; 'T' = 611; 'U' = 722; 'V' = 667; 'W' = 944; 'X' = 667;
+                    'Y' = 667; 'Z' = 611 }
+                if ($bold) { return $map[$ch.ToString()] }
+                $map2 = @{ 'A' = 667; 'B' = 667; 'C' = 722; 'D' = 722; 'E' = 667; 'F' = 611; 'G' = 778; 'H' = 722;
+                    'I' = 278; 'J' = 500; 'K' = 667; 'L' = 556; 'M' = 833; 'N' = 722; 'O' = 778; 'P' = 667;
+                    'Q' = 778; 'R' = 722; 'S' = 667; 'T' = 611; 'U' = 722; 'V' = 667; 'W' = 944; 'X' = 667;
+                    'Y' = 667; 'Z' = 611 }
+                return $map2[$ch.ToString()]
+            }
+            default {
+                $d = @{ ' ' = 278; '$' = 556; '(' = 333; ')' = 333; ',' = 278; '-' = 333; '.' = 278; '/' = 278;
+                    ':' = 278; ';' = 278; '&' = 667; '%' = 889; '+' = 584; '=' = 584; '_' = 556; '?' = 556 }
+                $db = @{ ' ' = 278; '$' = 556; '(' = 333; ')' = 333; ',' = 278; '-' = 333; '.' = 278; '/' = 278;
+                    ':' = 333; ';' = 333; '&' = 722; '%' = 889; '+' = 584; '=' = 584; '_' = 556; '?' = 611 }
+                $t = $ch.ToString()
+                if ($bold) { if ($db.ContainsKey($t)) { return $db[$t] } else { return 556 } }
+                if ($d.ContainsKey($t)) { return $d[$t] }
+                return 556
+            }
+        }
+    }
+
     $images = @()
     foreach ($f in $pngFiles) {
         $info = $productInfo[$f.BaseName]
@@ -242,9 +303,19 @@ function ConvertTo-QrPdf {
 
             $name = Escape-PdfText -s $images[$idx].Name
             $price = Escape-PdfText -s "`$$($images[$idx].Price)"
+
+            $cellLeft = $margin + $col * ($cellW + $gap)
+            $cellCenter = $cellLeft + $cellW / 2
+
+            $nameWidth = Measure-PdfText -text $name -bold $true -fontSize 18
+            $priceWidth = Measure-PdfText -text $price -bold $false -fontSize 20
+
+            $nameX = $cellCenter - $nameWidth / 2
+            $priceX = $cellCenter - $priceWidth / 2
+
             $labelY = $y - 12
-            [void]$contentBuilder.AppendLine("BT /F2 12 Tf $x $labelY Td ($name) Tj ET")
-            [void]$contentBuilder.AppendLine("BT /F1 10 Tf $x $($labelY - 14) Td ($price) Tj ET")
+            [void]$contentBuilder.AppendLine("BT /F2 18 Tf $nameX $labelY Td ($name) Tj ET")
+            [void]$contentBuilder.AppendLine("BT /F1 20 Tf $priceX $($labelY - 30) Td ($price) Tj ET")
         }
 
         $contentBytes = [System.Text.Encoding]::ASCII.GetBytes($contentBuilder.ToString())
