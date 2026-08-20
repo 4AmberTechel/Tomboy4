@@ -151,11 +151,11 @@ function ConvertTo-QrPdf {
     $pageH = 792
     $margin = 40
     $gap = 24
-    $cols = 2
-    $perPage = 4
-    $qrSize = 200
+    $cols = 3
+    $perPage = 9
+    $qrSize = 150
     $cellW = ($pageW - 2 * $margin - $gap) / $cols
-    $cellH = ($pageH - 2 * $margin - $gap) / 2
+    $cellH = ($pageH - 2 * $margin - $gap) / 3
     $nPages = [math]::Ceiling($images.Count / $perPage)
 
     $script:pdf = New-Object System.IO.MemoryStream
