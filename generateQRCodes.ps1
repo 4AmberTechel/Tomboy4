@@ -35,6 +35,20 @@ if ($yamlFiles.Count -eq 0) {
     exit 0
 }
 
+$productInfo = @{}
+foreach ($file in $yamlFiles) {
+    $content = Get-Content -LiteralPath $file.FullName
+    $code = ($content | Where-Object { $_ -match '^code:\s*(.+)$' } | Select-Object -First 1) -replace '^code:\s*', ''
+    $name = ($content | Where-Object { $_ -match '^name:\s*(.+)$' } | Select-Object -First 1) -replace '^name:\s*', ''
+    $price = ($content | Where-Object { $_ -match '^price:\s*(.+)$' } | Select-Object -First 1) -replace '^price:\s*', ''
+    if ($code) {
+        $productInfo[$code.Trim()] = [pscustomobject]@{
+            Name  = $name.Trim()
+            Price = $price.Trim()
+        }
+    }
+}
+
 foreach ($file in $yamlFiles) {
     $codeLine = Select-String -LiteralPath $file.FullName -Pattern '^code:\s*(.+)$' | Select-Object -First 1
     if (-not $codeLine) {
@@ -101,7 +115,7 @@ foreach ($file in $yamlFiles) {
 Write-Host "`nQR code generation complete. Files saved in: $qrDir"
 
 function ConvertTo-QrPdf {
-    param([string]$qrDir)
+    param([string]$qrDir, [hashtable]$productInfo)
     Add-Type -AssemblyName System.Drawing
 
     $pngFiles = Get-ChildItem -LiteralPath $qrDir -Filter *.png | Sort-Object Name
@@ -110,13 +124,21 @@ function ConvertTo-QrPdf {
         return
     }
 
+    function Escape-PdfText {
+        param([string]$s)
+        return ($s -replace '\\', '\\\\') -replace '\(', '\(' -replace '\)', '\)'
+    }
+
     $images = @()
     foreach ($f in $pngFiles) {
+        $info = $productInfo[$f.BaseName]
         $img = [System.Drawing.Image]::FromFile($f.FullName)
         $ms = New-Object System.IO.MemoryStream
         $img.Save($ms, [System.Drawing.Imaging.ImageFormat]::Jpeg)
         $images += [pscustomobject]@{
-            Name   = $f.BaseName
+            Code   = $f.BaseName
+            Name   = $(if ($info) { $info.Name } else { $f.BaseName })
+            Price  = $(if ($info -and $info.Price) { "$($info.Price)" } else { "" })
             Width  = $img.Width
             Height = $img.Height
             Data   = $ms.ToArray()
@@ -167,7 +189,8 @@ function ConvertTo-QrPdf {
     }
 
     $fontId = 3
-    $pageStart = $fontId + 1
+    $fontBoldId = 4
+    $pageStart = $fontBoldId + 1
     $contentStart = $pageStart + $nPages
     $imageStart = $contentStart + $nPages
 
@@ -188,6 +211,7 @@ function ConvertTo-QrPdf {
     Write-PdfObject 2 "<< /Type /Pages /Kids [$kids] /Count $nPages >>"
 
     Write-PdfObject $fontId "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
+    Write-PdfObject $fontBoldId "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>"
 
     $imgCounter = 0
     foreach ($img in $images) {
@@ -216,8 +240,11 @@ function ConvertTo-QrPdf {
             [void]$contentBuilder.AppendLine("/Im$($imageIds[$idx]) Do")
             [void]$contentBuilder.AppendLine("Q")
 
+            $name = Escape-PdfText -s $images[$idx].Name
+            $price = Escape-PdfText -s "`$$($images[$idx].Price)"
             $labelY = $y - 12
-            [void]$contentBuilder.AppendLine("BT /F1 10 Tf $x $labelY Td ($($images[$idx].Name)) Tj ET")
+            [void]$contentBuilder.AppendLine("BT /F2 12 Tf $x $labelY Td ($name) Tj ET")
+            [void]$contentBuilder.AppendLine("BT /F1 10 Tf $x $($labelY - 14) Td ($price) Tj ET")
         }
 
         $contentBytes = [System.Text.Encoding]::ASCII.GetBytes($contentBuilder.ToString())
@@ -226,7 +253,7 @@ function ConvertTo-QrPdf {
 
         $xobjects = ($usedIds | ForEach-Object { "/Im$_ $_ 0 R" }) -join " "
         $pageDict = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 $pageW $pageH] " +
-            "/Resources << /Font << /F1 $fontId 0 R >> /XObject << $xobjects >> >> " +
+            "/Resources << /Font << /F1 $fontId 0 R /F2 $fontBoldId 0 R >> /XObject << $xobjects >> >> " +
             "/Contents $($contentStart + $p) 0 R >>"
         Write-PdfObject ($pageStart + $p) $pageDict
     }
@@ -258,4 +285,4 @@ function ConvertTo-QrPdf {
     Write-Host "Stitched $($images.Count) QR codes into $pdfPath" -ForegroundColor Green
 }
 
-ConvertTo-QrPdf -qrDir $qrDir
+ConvertTo-QrPdf -qrDir $qrDir -productInfo $productInfo
