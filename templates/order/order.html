@@ -1,6 +1,6 @@
 <div class="page-section">
     <h1 class="page-title">Order Merch & Products</h1>
-    <p class="page-subtitle">Pick your items, choose a size, and we'll get back to you with shipping details</p>
+    <p class="page-subtitle">Pick your items, and we'll get back to you with shipping details</p>
 
     <div class="order-container">
         <div class="order-form-section">
@@ -28,24 +28,7 @@
                             <option value="Album CD (Signed)">Album CD (Signed) — $15</option>
                             <option value="Vinyl Record (Signed)">Vinyl Record (Signed) — $35</option>
                             <option value="Poster">Poster — $20</option>
-                            <option value="Custom Print (select size below)">Custom Print (select size below)</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="size">Size <span class="optional">(if applicable)</span></label>
-                        <select id="size" name="size">
-                            <option value="N/A">N/A</option>
-                            <option value="XS">XS</option>
-                            <option value="S">S</option>
-                            <option value="M">M</option>
-                            <option value="L">L</option>
-                            <option value="XL">XL</option>
-                            <option value="2XL">2XL</option>
-                            <option value="3XL">3XL</option>
-                            <option value="5x7">5x7 Print</option>
-                            <option value="8x10">8x10 Print</option>
-                            <option value="11x14">11x14 Print</option>
+                            <option value="Custom Print">Custom Print</option>
                         </select>
                     </div>
 
@@ -71,9 +54,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="notes">Notes <span class="optional">(optional)</span></label>
-                        <textarea id="notes" name="notes" placeholder="Autograph dedication, special requests, etc."
-                                  rows="3"></textarea>
+                        <label for="cashapp">CashApp Handle</label>
+                        <input id="cashapp" name="cashapp" placeholder="$AmberTechel" required type="text">
+                        <p class="form-hint">Enter your CashApp handle so payment can be collected (example: $AmberTechel)</p>
                     </div>
 
                     <button class="submit-btn" type="submit" id="submit-btn">
@@ -81,51 +64,13 @@
                         <span class="btn-icon">🛒</span>
                     </button>
                 </form>
-            </div>
-        </div>
 
-        <div class="order-info-section">
-            <div class="order-info">
-                <h2>Order Information</h2>
-                <p>Orders are confirmed by email after submission. Shipping is calculated based on your location and
-                    will be included in the confirmation email.</p>
-
-                <div class="order-details">
-                    <div class="order-item">
-                        <div class="order-icon">📦</div>
-                        <div class="order-text">
-                            <h3>Shipping</h3>
-                            <p>Worldwide — US &amp; International</p>
-                        </div>
-                    </div>
-
-                    <div class="order-item">
-                        <div class="order-icon">💳</div>
-                        <div class="order-text">
-                            <h3>Payment</h3>
-                            <p>Invoice emailed after order confirmation</p>
-                        </div>
-                    </div>
-
-                    <div class="order-item">
-                        <div class="order-icon">⏰</div>
-                        <div class="order-text">
-                            <h3>Processing</h3>
-                            <p>Usually ships within 5–7 business days</p>
-                        </div>
-                    </div>
-
-                    <div class="order-item">
-                        <div class="order-icon">✍️</div>
-                        <div class="order-text">
-                            <h3>Autographs</h3>
-                            <p>All signed items include a free personalized dedication</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="order-note">
-                    <p>Questions about an order? Reach out through the <a href="/contact/">contact page</a>.</p>
+                <div class="cashapp-pay">
+                    <p>Already have your total?</p>
+                    <a class="cashapp-link" href="https://cash.app/$AmberTechel" target="_blank" rel="noopener">
+                        <span class="cashapp-logo">$</span>
+                        Pay with CashApp — $AmberTechel
+                    </a>
                 </div>
             </div>
         </div>
@@ -135,15 +80,15 @@
 <style>
     .order-container {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 4rem;
+        grid-template-columns: 1fr;
+        gap: 2rem;
         margin-top: 3rem;
-        max-width: 1200px;
+        max-width: 800px;
         margin-left: auto;
         margin-right: auto;
     }
 
-    .order-form-section, .order-info-section {
+    .order-form-section {
         background: rgba(255, 255, 255, 0.95);
         border-radius: 20px;
         padding: 3rem;
@@ -151,7 +96,7 @@
         backdrop-filter: blur(10px);
     }
 
-    .order-form h2, .order-info h2 {
+    .order-form h2 {
         color: #6b73ff;
         font-size: 2rem;
         margin-bottom: 1.5rem;
@@ -200,6 +145,60 @@
         min-height: 60px;
     }
 
+    .form-hint {
+        font-size: 0.85rem;
+        color: #666;
+        font-style: italic;
+        margin-top: 0.4rem;
+        line-height: 1.4;
+    }
+
+    .cashapp-pay {
+        margin-top: 2rem;
+        text-align: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .cashapp-pay p {
+        color: #666;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+
+    .cashapp-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.9rem 2rem;
+        background: linear-gradient(45deg, #00c244, #00a338);
+        border-radius: 15px;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .cashapp-link:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(0, 194, 68, 0.3);
+    }
+
+    .cashapp-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
     .submit-btn {
         width: 100%;
         padding: 1.2rem 2rem;
@@ -228,74 +227,6 @@
         transform: translateY(-1px);
     }
 
-    .order-info p {
-        color: #666;
-        line-height: 1.8;
-        margin-bottom: 2rem;
-        font-size: 1.1rem;
-    }
-
-    .order-details {
-        margin: 2rem 0;
-    }
-
-    .order-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        background: rgba(107, 115, 255, 0.05);
-        border-radius: 15px;
-        transition: transform 0.3s ease;
-    }
-
-    .order-item:hover {
-        transform: translateX(5px);
-    }
-
-    .order-icon {
-        font-size: 1.8rem;
-        margin-right: 1rem;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(45deg, #ff6b9d, #6b73ff);
-        border-radius: 12px;
-        color: white;
-    }
-
-    .order-text h3 {
-        color: #6b73ff;
-        margin-bottom: 0.3rem;
-        font-size: 1.1rem;
-    }
-
-    .order-text p {
-        color: #666;
-        margin: 0;
-        font-size: 0.95rem;
-    }
-
-    .order-note {
-        margin-top: 2rem;
-        padding: 1rem;
-        background: rgba(255, 107, 157, 0.08);
-        border-radius: 12px;
-        text-align: center;
-    }
-
-    .order-note p {
-        margin: 0;
-        font-size: 0.95rem;
-    }
-
-    .order-note a {
-        color: #ff6b9d;
-        text-decoration: underline;
-    }
-
     /* Mobile responsiveness */
     @media (max-width: 768px) {
         .order-container {
@@ -303,11 +234,11 @@
             gap: 2rem;
         }
 
-        .order-form-section, .order-info-section {
+        .order-form-section {
             padding: 2rem;
         }
 
-        .order-form h2, .order-info h2 {
+        .order-form h2 {
             font-size: 1.5rem;
         }
     }
@@ -397,11 +328,11 @@
         const formData = new FormData(form);
         const name = formData.get('name');
         const product = formData.get('product');
-        const size = formData.get('size') || 'N/A';
         const quantity = formData.get('quantity') || '1';
+        const cashapp = formData.get('cashapp') || 'Not provided';
 
         document.getElementById('hidden-subject').value =
-            'New Order: ' + product + ' x' + quantity + ' (' + size + ')';
+            'New Order: ' + product + ' x' + quantity;
         document.getElementById('hidden-from-name').value = name || 'Anonymous';
 
         const btn = document.getElementById('submit-btn');
@@ -416,15 +347,14 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     access_key: form.elements.access_key.value,
-                    subject: 'New Order: ' + product + ' x' + quantity + ' (' + size + ')',
+                    subject: 'New Order: ' + product + ' x' + quantity,
                     from_name: name,
                     name: name,
                     email: formData.get('email'),
                     message: 'Product: ' + product +
-                        '\nSize: ' + size +
                         '\nQuantity: ' + quantity +
-                        '\nShipping Address:\n' + formData.get('address') +
-                        '\n\nNotes:\n' + (formData.get('notes') || 'None')
+                        '\nCashApp Handle: ' + cashapp +
+                        '\nShipping Address:\n' + formData.get('address')
                 })
             });
 
