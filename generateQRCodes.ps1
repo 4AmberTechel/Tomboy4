@@ -124,6 +124,25 @@ function ConvertTo-QrPdf {
         return
     }
 
+    function Split-PdfLines {
+        param([string]$text, [bool]$bold, [int]$fontSize, [double]$maxWidth)
+        $words = $text -split ' '
+        $lines = @()
+        $current = ''
+        foreach ($word in $words) {
+            $candidate = if ($current -eq '') { $word } else { "$current $word" }
+            if ((Measure-PdfText -text $candidate -bold $bold -fontSize $fontSize) -le $maxWidth) {
+                $current = $candidate
+            }
+            else {
+                if ($current -ne '') { $lines += $current }
+                $current = $word
+            }
+        }
+        if ($current -ne '') { $lines += $current }
+        return $lines
+    }
+
     function Escape-PdfText {
         param([string]$s)
         return ($s -replace '\\', '\\\\') -replace '\(', '\(' -replace '\)', '\)'
@@ -307,15 +326,19 @@ function ConvertTo-QrPdf {
             $cellLeft = $margin + $col * ($cellW + $gap)
             $cellCenter = $cellLeft + $cellW / 2
 
-            $nameWidth = Measure-PdfText -text $name -bold $true -fontSize 14
+            $nameLines = Split-PdfLines -text $name -bold $true -fontSize 14 -maxWidth $qrSize
             $priceWidth = Measure-PdfText -text $price -bold $false -fontSize 20
-
-            $nameX = $cellCenter - $nameWidth / 2
             $priceX = $cellCenter - $priceWidth / 2
 
             $labelY = $y - 12
-            [void]$contentBuilder.AppendLine("BT /F2 14 Tf $nameX $labelY Td ($name) Tj ET")
-            [void]$contentBuilder.AppendLine("BT /F1 20 Tf $priceX $($labelY - 30) Td ($price) Tj ET")
+            $nameY = $labelY
+            foreach ($line in $nameLines) {
+                $lineWidth = Measure-PdfText -text $line -bold $true -fontSize 14
+                $lineX = $cellCenter - $lineWidth / 2
+                [void]$contentBuilder.AppendLine("BT /F2 14 Tf $lineX $nameY Td ($line) Tj ET")
+                $nameY -= 17
+            }
+            [void]$contentBuilder.AppendLine("BT /F1 20 Tf $priceX $($nameY - 12) Td ($price) Tj ET")
         }
 
         $contentBytes = [System.Text.Encoding]::ASCII.GetBytes($contentBuilder.ToString())
