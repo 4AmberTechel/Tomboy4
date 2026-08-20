@@ -7,7 +7,7 @@ use std::path::Path;
 use std::process::Command;
 use website_test::shared::{
     generate_testimonials_html, generate_youtube_embeds, inject_seo_head, is_image_extension,
-    read_links_file, read_testimonials, read_youtube_links, url_encode,
+    read_links_file, read_products, read_testimonials, read_youtube_links, url_encode,
 };
 
 const BASE_URL: &str = "https://4ambertechel.com";
@@ -848,6 +848,10 @@ fn main() {
     if order_path.exists() {
         match fs::read_to_string(&order_path) {
             Ok(content) => {
+                let products = read_products();
+                let products_json =
+                    serde_json::to_string(&products).unwrap_or_else(|_| "[]".to_string());
+                let content = content.replace("{{PRODUCTS_JSON}}", &products_json);
                 let html = generate_page(
                     "Order Merch | Amber Techel — Shop Signed Photos, Apparel & Music",
                     &content,
@@ -859,15 +863,18 @@ fn main() {
                 println!("Generated order/index.html");
 
                 // Generate per-product order pages for direct URLs (e.g. /order/ZPLB)
-                for (code, product) in [
-                    ("ZPLB", "Plumping Lip Balm"),
-                ] {
-                    let product_dir = order_dir.join(code);
+                for product in &products {
+                    let product_dir = order_dir.join(&product.code);
                     create_dir_if_not_exists(&product_dir);
                     let product_file = product_dir.join("index.html");
-                    fs::write(&product_file, &html)
-                        .expect(&format!("Failed to write order/{}/index.html", code));
-                    println!("Generated order/{}/index.html ({} auto-selected)", code, product);
+                    fs::write(&product_file, &html).expect(&format!(
+                        "Failed to write order/{}/index.html",
+                        product.code
+                    ));
+                    println!(
+                        "Generated order/{}/index.html ({} auto-selected)",
+                        product.code, product.name
+                    );
                 }
             }
             Err(e) => {

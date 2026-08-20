@@ -311,20 +311,14 @@
 </style>
 
 <script>
-    const PRODUCT_CODES = {
-        'ZPLB': 'Plumping Lip Balm'
-    };
+    const PRODUCTS = {{PRODUCTS_JSON}};
 
-    const PRODUCT_PRICES = {
-        'Autographed 8x10 Photo': 25,
-        'Plumping Lip Balm': 12,
-        'T-Shirt': 30,
-        'Hoodie': 55,
-        'Album CD (Signed)': 15,
-        'Vinyl Record (Signed)': 35,
-        'Poster': 20,
-        'Custom Print': null
-    };
+    const PRODUCT_CODES = {};
+    const PRODUCT_PRICES = {};
+    PRODUCTS.forEach(function (p) {
+        PRODUCT_CODES[p.code.toUpperCase()] = p.name;
+        PRODUCT_PRICES[p.name] = p.price;
+    });
 
     function applyProductFromUrl() {
         const segments = window.location.pathname.split('/').filter(Boolean);

@@ -8,7 +8,7 @@ use tower_http::services::ServeDir;
 use tower_http::set_header::SetResponseHeaderLayer;
 use website_test::shared::{
     generate_testimonials_html, generate_youtube_embeds, inject_seo_head, is_image_extension,
-    read_links_file, read_testimonials, read_youtube_links, url_encode,
+    read_links_file, read_products, read_testimonials, read_youtube_links, url_encode,
 };
 
 #[derive(Clone, Debug)]
@@ -480,7 +480,10 @@ async fn order_page_handler(
     templates: axum::extract::State<HashMap<String, PageTemplate>>,
 ) -> Result<Html<String>, axum::response::Response> {
     if let Some(template) = templates.get("/order/") {
-        let html_content = generate_page(&template.title, &template.content, "/order/");
+        let products = read_products();
+        let products_json = serde_json::to_string(&products).unwrap_or_else(|_| "[]".to_string());
+        let content = template.content.replace("{{PRODUCTS_JSON}}", &products_json);
+        let html_content = generate_page(&template.title, &content, "/order/");
         Ok(Html(html_content))
     } else {
         Err(not_found_response("order"))

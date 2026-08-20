@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
@@ -13,6 +13,34 @@ pub struct Testimonial {
 #[derive(Debug, Deserialize)]
 pub struct TestimonialsData {
     pub testimonials: Vec<Testimonial>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Product {
+    pub code: String,
+    pub name: String,
+    pub price: Option<f64>,
+}
+
+pub fn read_products() -> Vec<Product> {
+    let products_dir = Path::new("products");
+    let mut products = Vec::new();
+
+    if products_dir.exists()
+        && let Ok(entries) = fs::read_dir(products_dir)
+    {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().is_some_and(|e| e == "yaml" || e == "yml")
+                && let Ok(content) = fs::read_to_string(&path)
+                && let Ok(product) = serde_yaml::from_str::<Product>(&content)
+            {
+                products.push(product);
+            }
+        }
+    }
+
+    products
 }
 
 pub fn is_image_extension(ext: &str) -> bool {
