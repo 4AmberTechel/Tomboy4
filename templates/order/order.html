@@ -268,13 +268,19 @@
         return code;
     }
 
-    function openCashApp(amount, orderNumber, email) {
-        const url = 'https://cash.app/$AmberTechel/' + amount +
-            '?note=' + encodeURIComponent('Order ' + orderNumber + ' - ' + email);
-        window.open(url, '_blank');
+    function openCashApp(amount) {
+        window.open('https://cash.app/$AmberTechel/' + amount, '_blank');
     }
 
-    function submitOrder(form, orderNumber) {
+    function copyOrderInfo(orderNumber, email) {
+        const text = 'Order ' + orderNumber + ' - ' + email;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text);
+        }
+        return text;
+    }
+
+    function submitOrder(form, orderNumber, noteText) {
         const formData = new FormData(form);
         const name = formData.get('name');
         const product = formData.get('product');
@@ -314,7 +320,7 @@
                     throw new Error(result.message || 'Order submission failed');
                 }
                 lastSubmitTime = Date.now();
-                showStatus(`Thank you ${name}! Order #${orderNumber} submitted. Please complete your CashApp payment to confirm.`, 'success');
+                showStatus(`Thank you ${name}! Order #${orderNumber} submitted. Your order info "${noteText}" was copied — paste it into the CashApp note to complete your payment.`, 'success');
                 form.reset();
             })
             .catch(error => {
@@ -366,8 +372,9 @@
         const orderNumber = generateOrderNumber();
         const total = (price * quantity).toFixed(2);
 
-        openCashApp(total, orderNumber, email);
-        submitOrder(form, orderNumber);
+        const noteText = copyOrderInfo(orderNumber, email);
+        openCashApp(total);
+        submitOrder(form, orderNumber, noteText);
     }
 
     function showStatus(message, type) {
