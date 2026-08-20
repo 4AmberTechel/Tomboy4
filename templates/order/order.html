@@ -11,6 +11,7 @@
         <div class="order-form-section">
             <div class="order-form">
                 <h2 id="order-title">Place Your Order</h2>
+                <div class="product-description" id="product-description" style="display:none"></div>
                 <form class="message-form" id="order-form" onsubmit="handleOrderSubmit(event)">
                     <div id="form-status" class="form-status"></div>
 
@@ -231,6 +232,17 @@
         font-size: 2rem;
         margin-bottom: 1.5rem;
         text-align: center;
+    }
+
+    .product-description {
+        background: #f5f6ff;
+        border-left: 4px solid #6b73ff;
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        margin-bottom: 1.5rem;
+        color: #333;
+        font-size: 0.95rem;
+        line-height: 1.5;
     }
 
     .form-group {
@@ -555,6 +567,15 @@
 
         const title = document.getElementById('order-title');
         if (title) title.textContent = 'Place Your Order for ' + product;
+
+        const descBox = document.getElementById('product-description');
+        const match = PRODUCTS.find(function (p) { return p.code.toUpperCase() === code; });
+        if (descBox && match && match.description) {
+            descBox.textContent = match.description;
+            descBox.style.display = 'block';
+        } else if (descBox) {
+            descBox.style.display = 'none';
+        }
 
         showStatus(product + ' added to your order. Complete the form below to place your order.', 'success');
         const form = document.getElementById('order-form');
