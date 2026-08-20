@@ -49,6 +49,15 @@ foreach ($file in $yamlFiles) {
     }
 }
 
+$productInfo["facebook_Amber"] = [pscustomobject]@{
+    Name  = "socials facebook"
+    Price = ""
+}
+$productInfo["youtube_Amber"] = [pscustomobject]@{
+    Name  = "socials youtube"
+    Price = ""
+}
+
 foreach ($file in $yamlFiles) {
     $codeLine = Select-String -LiteralPath $file.FullName -Pattern '^code:\s*(.+)$' | Select-Object -First 1
     if (-not $codeLine) {
