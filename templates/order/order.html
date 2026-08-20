@@ -55,6 +55,18 @@
     </div>
 </div>
 
+<div class="clipboard-modal-overlay" id="clipboard-modal">
+    <div class="clipboard-modal">
+        <div class="clipboard-icon">📋</div>
+        <h3>Copying Information to Clipboard</h3>
+        <p class="clipboard-message">Your order number and email have been copied to your clipboard.</p>
+        <p class="clipboard-warning">Make sure to <strong>paste it into the note</strong> when you pay in CashApp so
+            we can match your payment to your order.</p>
+        <div class="clipboard-code" id="clipboard-code">----</div>
+        <button class="clipboard-btn" id="clipboard-ok" type="button">I Understand — Open CashApp</button>
+    </div>
+</div>
+
 <style>
     .order-container {
         display: grid;
@@ -216,6 +228,100 @@
             transform: translateY(0);
         }
     }
+
+    /* Clipboard confirmation modal */
+    .clipboard-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .clipboard-modal-overlay.show {
+        display: flex;
+    }
+
+    .clipboard-modal {
+        background: #fff;
+        border-radius: 20px;
+        padding: 2.5rem;
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        position: relative;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+        animation: slideIn 0.4s ease;
+    }
+
+    .clipboard-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .clipboard-modal h3 {
+        color: #6b73ff;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .clipboard-message {
+        color: #666;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .clipboard-warning {
+        color: #ff6b9d;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .clipboard-warning strong {
+        color: #ff6b9d;
+    }
+
+    .clipboard-code {
+        font-size: 1.4rem;
+        font-weight: bold;
+        letter-spacing: 2px;
+        color: #6b73ff;
+        font-family: monospace;
+        margin-bottom: 1.5rem;
+        user-select: all;
+        background: rgba(107, 115, 255, 0.06);
+        padding: 0.8rem;
+        border-radius: 10px;
+    }
+
+    .clipboard-btn {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(45deg, #00c244, #00a338);
+        border: none;
+        border-radius: 15px;
+        color: white;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .clipboard-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(0, 194, 68, 0.3);
+    }
 </style>
 
 <script>
@@ -373,9 +479,21 @@
         const total = (price * quantity).toFixed(2);
 
         const noteText = copyOrderInfo(orderNumber, email);
-        openCashApp(total);
-        submitOrder(form, orderNumber, noteText);
+        pendingOrder = { form, orderNumber, total, noteText };
+
+        document.getElementById('clipboard-code').textContent = noteText;
+        document.getElementById('clipboard-modal').classList.add('show');
     }
+
+    let pendingOrder = null;
+
+    document.getElementById('clipboard-ok').addEventListener('click', function () {
+        if (!pendingOrder) return;
+        document.getElementById('clipboard-modal').classList.remove('show');
+        openCashApp(pendingOrder.total);
+        submitOrder(pendingOrder.form, pendingOrder.orderNumber, pendingOrder.noteText);
+        pendingOrder = null;
+    });
 
     function showStatus(message, type) {
         const el = document.getElementById('form-status');
