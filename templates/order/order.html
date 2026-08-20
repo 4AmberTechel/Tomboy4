@@ -5,31 +5,17 @@
     <div class="order-container">
         <div class="order-form-section">
             <div class="order-form">
-                <h2>Place Your Order</h2>
+                <h2 id="order-title">Place Your Order</h2>
                 <form class="message-form" id="order-form" onsubmit="handleOrderSubmit(event)">
                     <div id="form-status" class="form-status"></div>
 
                     <input type="hidden" name="access_key" value="602eb5a2-6a00-4c2b-b046-08f6311be5be">
                     <input type="hidden" name="subject" id="hidden-subject">
                     <input type="hidden" name="from_name" id="hidden-from-name">
+                    <input type="hidden" id="product" name="product">
 
                     <div style="position:absolute;left:-9999px" aria-hidden="true">
                         <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="product">Product</label>
-                        <select id="product" name="product" required>
-                            <option value="">Select a product...</option>
-                            <option value="Autographed 8x10 Photo">Autographed 8x10 Photo — $25</option>
-                            <option value="Plumping Lip Balm">Plumping Lip Balm — $12</option>
-                            <option value="T-Shirt">T-Shirt — $30</option>
-                            <option value="Hoodie">Hoodie — $55</option>
-                            <option value="Album CD (Signed)">Album CD (Signed) — $15</option>
-                            <option value="Vinyl Record (Signed)">Vinyl Record (Signed) — $35</option>
-                            <option value="Poster">Poster — $20</option>
-                            <option value="Custom Print">Custom Print</option>
-                        </select>
                     </div>
 
                     <div class="form-group">
@@ -64,14 +50,6 @@
                         <span class="btn-icon">🛒</span>
                     </button>
                 </form>
-
-                <div class="cashapp-pay">
-                    <p>Already have your total?</p>
-                    <a class="cashapp-link" href="https://cash.app/$AmberTechel" target="_blank" rel="noopener">
-                        <span class="cashapp-logo">$</span>
-                        Pay with CashApp — $AmberTechel
-                    </a>
-                </div>
             </div>
         </div>
     </div>
@@ -151,52 +129,6 @@
         font-style: italic;
         margin-top: 0.4rem;
         line-height: 1.4;
-    }
-
-    .cashapp-pay {
-        margin-top: 2rem;
-        text-align: center;
-        padding-top: 1.5rem;
-        border-top: 1px solid #e0e0e0;
-    }
-
-    .cashapp-pay p {
-        color: #666;
-        margin-bottom: 1rem;
-        font-size: 1rem;
-    }
-
-    .cashapp-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.6rem;
-        padding: 0.9rem 2rem;
-        background: linear-gradient(45deg, #00c244, #00a338);
-        border-radius: 15px;
-        color: white;
-        text-decoration: none;
-        font-weight: bold;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .cashapp-link:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 15px 30px rgba(0, 194, 68, 0.3);
-    }
-
-    .cashapp-logo {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 50%;
-        font-weight: bold;
-        font-size: 1.1rem;
     }
 
     .submit-btn {
@@ -291,17 +223,33 @@
         'ZPLB': 'Plumping Lip Balm'
     };
 
+    const PRODUCT_PRICES = {
+        'Autographed 8x10 Photo': 25,
+        'Plumping Lip Balm': 12,
+        'T-Shirt': 30,
+        'Hoodie': 55,
+        'Album CD (Signed)': 15,
+        'Vinyl Record (Signed)': 35,
+        'Poster': 20,
+        'Custom Print': null
+    };
+
     function applyProductFromUrl() {
         const segments = window.location.pathname.split('/').filter(Boolean);
         const code = (segments[segments.length - 1] || '').toUpperCase();
         const product = PRODUCT_CODES[code];
-        if (!product) return;
+        if (!product) {
+            showStatus('No product selected. Please visit the product link to place an order.', 'error');
+            return;
+        }
 
-        const select = document.getElementById('product');
-        if (!select) return;
-        select.value = product;
+        const input = document.getElementById('product');
+        if (input) input.value = product;
 
-        showStatus('Plumping Lip Balm added to your order. Complete the form below to place your order.', 'success');
+        const title = document.getElementById('order-title');
+        if (title) title.textContent = 'Place Your Order for ' + product;
+
+        showStatus(product + ' added to your order. Complete the form below to place your order.', 'success');
         const form = document.getElementById('order-form');
         if (form) {
             form.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -310,6 +258,75 @@
 
     let lastSubmitTime = 0;
     let isSubmitting = false;
+
+    function generateOrderNumber() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code = 'AT';
+        for (let i = 0; i < 6; i++) {
+            code += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return code;
+    }
+
+    function openCashApp(amount, orderNumber, email) {
+        const url = 'https://cash.app/$AmberTechel/' + amount +
+            '?note=' + encodeURIComponent('Order ' + orderNumber + ' - ' + email);
+        window.open(url, '_blank');
+    }
+
+    function submitOrder(form, orderNumber) {
+        const formData = new FormData(form);
+        const name = formData.get('name');
+        const product = formData.get('product');
+        const quantity = formData.get('quantity') || '1';
+        const cashapp = formData.get('cashapp') || 'Not provided';
+
+        document.getElementById('hidden-subject').value =
+            'New Order: ' + product + ' x' + quantity + ' (Order #' + orderNumber + ')';
+        document.getElementById('hidden-from-name').value = name || 'Anonymous';
+
+        const btn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+        btn.disabled = true;
+        btnText.textContent = 'Placing Order...';
+        isSubmitting = true;
+
+        fetch('https://api.web3forms.com/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                access_key: form.elements.access_key.value,
+                subject: 'New Order: ' + product + ' x' + quantity + ' (Order #' + orderNumber + ')',
+                from_name: name,
+                name: name,
+                email: formData.get('email'),
+                message: 'Order #' + orderNumber +
+                    '\nProduct: ' + product +
+                    '\nQuantity: ' + quantity +
+                    '\nTotal: $' + (PRODUCT_PRICES[product] === null ? 'Quote' : (PRODUCT_PRICES[product] * quantity).toFixed(2)) +
+                    '\nCashApp Handle: ' + cashapp +
+                    '\nShipping Address:\n' + formData.get('address')
+            })
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success) {
+                    throw new Error(result.message || 'Order submission failed');
+                }
+                lastSubmitTime = Date.now();
+                showStatus(`Thank you ${name}! Order #${orderNumber} submitted. Please complete your CashApp payment to confirm.`, 'success');
+                form.reset();
+            })
+            .catch(error => {
+                console.error('Failed to place order:', error);
+                showStatus('Failed to place order. Please try again or reach out via the contact page.', 'error');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btnText.textContent = 'Place Order';
+                isSubmitting = false;
+            });
+    }
 
     async function handleOrderSubmit(event) {
         event.preventDefault();
@@ -326,55 +343,31 @@
 
         const form = event.target;
         const formData = new FormData(form);
-        const name = formData.get('name');
         const product = formData.get('product');
-        const quantity = formData.get('quantity') || '1';
-        const cashapp = formData.get('cashapp') || 'Not provided';
+        const quantity = parseInt(formData.get('quantity'), 10) || 1;
+        const price = PRODUCT_PRICES[product];
+        const email = formData.get('email') || '';
 
-        document.getElementById('hidden-subject').value =
-            'New Order: ' + product + ' x' + quantity;
-        document.getElementById('hidden-from-name').value = name || 'Anonymous';
-
-        const btn = document.getElementById('submit-btn');
-        const btnText = document.getElementById('btn-text');
-        btn.disabled = true;
-        btnText.textContent = 'Placing Order...';
-        isSubmitting = true;
-
-        try {
-            const response = await fetch('https://api.web3forms.com/submit', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    access_key: form.elements.access_key.value,
-                    subject: 'New Order: ' + product + ' x' + quantity,
-                    from_name: name,
-                    name: name,
-                    email: formData.get('email'),
-                    message: 'Product: ' + product +
-                        '\nQuantity: ' + quantity +
-                        '\nCashApp Handle: ' + cashapp +
-                        '\nShipping Address:\n' + formData.get('address')
-                })
-            });
-
-            const result = await response.json();
-
-            if (!result.success) {
-                throw new Error(result.message || 'Order submission failed');
-            }
-
-            lastSubmitTime = now;
-            showStatus(`Thank you ${name}! Your order has been received. You'll get a confirmation email shortly.`, 'success');
-            form.reset();
-        } catch (error) {
-            console.error('Failed to place order:', error);
-            showStatus('Failed to place order. Please try again or reach out via the contact page.', 'error');
-        } finally {
-            btn.disabled = false;
-            btnText.textContent = 'Place Order';
-            isSubmitting = false;
+        if (!product) {
+            showStatus('No product selected. Please visit the product link to place an order.', 'error');
+            return;
         }
+
+        if (price === null) {
+            showStatus('This product is not available for online ordering yet.', 'error');
+            return;
+        }
+
+        if (price === undefined) {
+            showStatus('Unable to determine the price for this product.', 'error');
+            return;
+        }
+
+        const orderNumber = generateOrderNumber();
+        const total = (price * quantity).toFixed(2);
+
+        openCashApp(total, orderNumber, email);
+        submitOrder(form, orderNumber);
     }
 
     function showStatus(message, type) {
