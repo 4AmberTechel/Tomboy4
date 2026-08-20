@@ -227,7 +227,7 @@ function ConvertTo-QrPdf {
         $xobjects = ($usedIds | ForEach-Object { "/Im$_ $_ 0 R" }) -join " "
         $pageDict = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 $pageW $pageH] " +
             "/Resources << /Font << /F1 $fontId 0 R >> /XObject << $xobjects >> >> " +
-            "/Contents ($($contentStart + $p)) 0 R >>"
+            "/Contents $($contentStart + $p) 0 R >>"
         Write-PdfObject ($pageStart + $p) $pageDict
     }
 
