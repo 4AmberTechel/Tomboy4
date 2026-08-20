@@ -99,3 +99,163 @@ foreach ($file in $yamlFiles) {
 }
 
 Write-Host "`nQR code generation complete. Files saved in: $qrDir"
+
+function ConvertTo-QrPdf {
+    param([string]$qrDir)
+    Add-Type -AssemblyName System.Drawing
+
+    $pngFiles = Get-ChildItem -LiteralPath $qrDir -Filter *.png | Sort-Object Name
+    if ($pngFiles.Count -eq 0) {
+        Write-Host "No QR codes to stitch into PDF." -ForegroundColor Yellow
+        return
+    }
+
+    $images = @()
+    foreach ($f in $pngFiles) {
+        $img = [System.Drawing.Image]::FromFile($f.FullName)
+        $ms = New-Object System.IO.MemoryStream
+        $img.Save($ms, [System.Drawing.Imaging.ImageFormat]::Jpeg)
+        $images += [pscustomobject]@{
+            Name   = $f.BaseName
+            Width  = $img.Width
+            Height = $img.Height
+            Data   = $ms.ToArray()
+        }
+        $ms.Dispose()
+        $img.Dispose()
+    }
+
+    $pageW = 612
+    $pageH = 792
+    $margin = 40
+    $gap = 24
+    $cols = 2
+    $perPage = 4
+    $qrSize = 200
+    $cellW = ($pageW - 2 * $margin - $gap) / $cols
+    $cellH = ($pageH - 2 * $margin - $gap) / 2
+    $nPages = [math]::Ceiling($images.Count / $perPage)
+
+    $script:pdf = New-Object System.IO.MemoryStream
+    $script:offsets = [System.Collections.Generic.List[long]]::new()
+    $script:offsets.Add(0)
+
+    function Write-PdfText {
+        param([string]$s)
+        $b = [System.Text.Encoding]::ASCII.GetBytes($s)
+        $script:pdf.Write($b, 0, $b.Length)
+    }
+
+    function Write-PdfObject {
+        param(
+            [int]$id,
+            [string]$dict,
+            [byte[]]$streamData = $null
+        )
+        while ($script:offsets.Count -le $id) {
+            $script:offsets.Add(-1)
+        }
+        $script:offsets[$id] = $script:pdf.Position
+        Write-PdfText "$id 0 obj`n"
+        Write-PdfText $dict
+        if ($null -ne $streamData) {
+            Write-PdfText "stream`n"
+            $script:pdf.Write($streamData, 0, $streamData.Length)
+            Write-PdfText "`nendstream`n"
+        }
+        Write-PdfText "endobj`n"
+    }
+
+    $fontId = 3
+    $pageStart = $fontId + 1
+    $contentStart = $pageStart + $nPages
+    $imageStart = $contentStart + $nPages
+
+    $imageIds = @()
+    for ($i = 0; $i -lt $images.Count; $i++) {
+        $imageIds += ($imageStart + $i)
+    }
+
+    Write-PdfText "%PDF-1.4`n"
+
+    Write-PdfObject 1 "<< /Type /Catalog /Pages 2 0 R >>"
+
+    $pageIds = @()
+    for ($p = 0; $p -lt $nPages; $p++) {
+        $pageIds += ($pageStart + $p)
+    }
+    $kids = ($pageIds | ForEach-Object { "$_ 0 R" }) -join " "
+    Write-PdfObject 2 "<< /Type /Pages /Kids [$kids] /Count $nPages >>"
+
+    Write-PdfObject $fontId "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
+
+    $imgCounter = 0
+    foreach ($img in $images) {
+        $streamDict = "<< /Type /XObject /Subtype /Image /Width $($img.Width) /Height $($img.Height) " +
+            "/ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length $($img.Data.Length) >>"
+        Write-PdfObject $imageIds[$imgCounter] $streamDict $img.Data
+        $imgCounter++
+    }
+    for ($p = 0; $p -lt $nPages; $p++) {
+        $contentBuilder = New-Object System.Text.StringBuilder
+        $usedIds = @()
+        for ($k = 0; $k -lt $perPage; $k++) {
+            $idx = $p * $perPage + $k
+            if ($idx -ge $images.Count) { break }
+            $usedIds += $imageIds[$idx]
+
+            $col = $k % $cols
+            $row = [math]::Floor($k / $cols)
+            $x = $margin + $col * ($cellW + $gap) + ($cellW - $qrSize) / 2
+            $yTop = $pageH - $margin - $row * ($cellH + $gap)
+            $y = $yTop - $qrSize
+
+            [void]$contentBuilder.AppendLine("q")
+            [void]$contentBuilder.AppendLine("1 0 0 1 $x $y cm")
+            [void]$contentBuilder.AppendLine("$qrSize 0 0 $qrSize 0 0 cm")
+            [void]$contentBuilder.AppendLine("/Im$($imageIds[$idx]) Do")
+            [void]$contentBuilder.AppendLine("Q")
+
+            $labelY = $y - 12
+            [void]$contentBuilder.AppendLine("BT /F1 10 Tf $x $labelY Td ($($images[$idx].Name)) Tj ET")
+        }
+
+        $contentBytes = [System.Text.Encoding]::ASCII.GetBytes($contentBuilder.ToString())
+        $contentDict = "<< /Length $($contentBytes.Length) >>"
+        Write-PdfObject ($contentStart + $p) $contentDict $contentBytes
+
+        $xobjects = ($usedIds | ForEach-Object { "/Im$_ $_ 0 R" }) -join " "
+        $pageDict = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 $pageW $pageH] " +
+            "/Resources << /Font << /F1 $fontId 0 R >> /XObject << $xobjects >> >> " +
+            "/Contents ($($contentStart + $p)) 0 R >>"
+        Write-PdfObject ($pageStart + $p) $pageDict
+    }
+
+    $maxId = $imageStart + $images.Count - 1
+    $pdfBytes = $script:pdf.ToArray()
+    $script:pdf.Dispose()
+
+    $out = New-Object System.IO.MemoryStream
+    $out.Write($pdfBytes, 0, $pdfBytes.Length)
+    $b = [System.Text.Encoding]::ASCII.GetBytes("xref`n0 $($maxId + 1)`n")
+    $out.Write($b, 0, $b.Length)
+    $b = [System.Text.Encoding]::ASCII.GetBytes("0000000000 65535 f `n")
+    $out.Write($b, 0, $b.Length)
+    for ($i = 1; $i -le $maxId; $i++) {
+        $entry = $offsets[$i].ToString().PadLeft(10, '0')
+        $b = [System.Text.Encoding]::ASCII.GetBytes("$entry 00000 n `n")
+        $out.Write($b, 0, $b.Length)
+    }
+    $xrefPos = $pdfBytes.Length
+    $trailer = "trailer`n<< /Size $($maxId + 1) /Root 1 0 R >>`nstartxref`n$xrefPos`n%%EOF"
+    $b = [System.Text.Encoding]::ASCII.GetBytes($trailer)
+    $out.Write($b, 0, $b.Length)
+
+    $pdfPath = Join-Path $qrDir "All-QR-Codes.pdf"
+    [System.IO.File]::WriteAllBytes($pdfPath, $out.ToArray())
+    $out.Dispose()
+
+    Write-Host "Stitched $($images.Count) QR codes into $pdfPath" -ForegroundColor Green
+}
+
+ConvertTo-QrPdf -qrDir $qrDir
