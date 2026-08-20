@@ -12,7 +12,7 @@
             <div class="order-form">
                 <h2 id="order-title">Place Your Order</h2>
                 <div class="product-description" id="product-description" style="display:none"></div>
-                <form class="message-form" id="order-form" onsubmit="handleOrderSubmit(event)">
+                <form class="message-form" id="order-form" onsubmit="handleAddToCart(event)">
                     <div id="form-status" class="form-status"></div>
 
                     <input type="hidden" name="access_key" value="602eb5a2-6a00-4c2b-b046-08f6311be5be">
@@ -114,20 +114,29 @@
                         </div>
                     </div>
 
-                    <div class="form-group" id="shipping-summary" style="display:none">
-                        <div class="shipping-estimate">
-                            <p>Subtotal: $<span id="subtotal-display">0.00</span></p>
-                            <p>Shipping: $<span id="shipping-display">0.00</span></p>
-                            <p class="shipping-total"><strong>Total: $<span id="total-display">0.00</span></strong></p>
-                            <p class="shipping-note">Shipping is a Priority Mail estimate based on your state.</p>
-                        </div>
-                    </div>
-
-                    <button class="submit-btn" type="submit" id="submit-btn">
-                        <span class="btn-text" id="btn-text">Place Order</span>
+                    <button class="submit-btn" type="button" id="add-to-cart-btn">
+                        <span class="btn-text" id="btn-text">Add to Cart</span>
                         <span class="btn-icon">🛒</span>
                     </button>
                 </form>
+            </div>
+        </div>
+
+        <div class="cart-section">
+            <div class="cart-panel">
+                <h2>Your Cart</h2>
+                <div class="cart-empty" id="cart-empty">Your cart is empty.<br>Add a product to get started.</div>
+                <div class="cart-items" id="cart-items"></div>
+                <div class="shipping-estimate" id="shipping-summary" style="display:none">
+                    <p>Subtotal: $<span id="subtotal-display">0.00</span></p>
+                    <p>Shipping: $<span id="shipping-display">0.00</span></p>
+                    <p class="shipping-total"><strong>Total: $<span id="total-display">0.00</span></strong></p>
+                    <p class="shipping-note">Shipping is a Priority Mail estimate based on your state.</p>
+                </div>
+                <button class="submit-btn place-order-btn" type="button" id="place-order-btn">
+                    <span class="btn-text" id="place-order-btn-text">Place Order</span>
+                    <span class="btn-icon">🛒</span>
+                </button>
             </div>
         </div>
     </div>
@@ -147,10 +156,10 @@
 <style>
     .order-container {
         display: grid;
-        grid-template-columns: 320px 1fr;
-        gap: 2rem;
+        grid-template-columns: 240px 1fr 300px;
+        gap: 1.5rem;
         margin-top: 3rem;
-        max-width: 1000px;
+        max-width: 1200px;
         margin-left: auto;
         margin-right: auto;
         align-items: start;
@@ -225,6 +234,108 @@
         padding: 3rem;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         backdrop-filter: blur(10px);
+    }
+
+    .cart-section {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        position: sticky;
+        top: 2rem;
+    }
+
+    .cart-panel h2 {
+        color: #6b73ff;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .cart-empty {
+        color: #999;
+        font-size: 0.95rem;
+        font-style: italic;
+        text-align: center;
+        padding: 1.5rem 0;
+    }
+
+    .cart-items {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        max-height: 40vh;
+        overflow-y: auto;
+        margin-bottom: 1rem;
+    }
+
+    .cart-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 0.75rem;
+        background: #f5f6ff;
+        border: 2px solid #e0e0ff;
+        border-radius: 10px;
+        font-size: 0.9rem;
+    }
+
+    .cart-item-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        min-width: 0;
+    }
+
+    .cart-item-name {
+        font-weight: bold;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cart-item-meta {
+        color: #666;
+        font-size: 0.8rem;
+    }
+
+    .cart-item-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    .cart-item-total {
+        font-weight: bold;
+        color: #6b73ff;
+        white-space: nowrap;
+    }
+
+    .cart-remove {
+        background: #ffe1e1;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        color: #ff4d4d;
+        font-size: 0.8rem;
+        font-weight: bold;
+        cursor: pointer;
+        line-height: 1;
+        transition: all 0.2s ease;
+    }
+
+    .cart-remove:hover {
+        background: #ff4d4d;
+        color: white;
+    }
+
+    .place-order-btn {
+        width: 100%;
     }
 
     .order-form h2 {
@@ -369,6 +480,10 @@
 
         .order-form-section {
             padding: 2rem;
+        }
+
+        .cart-section {
+            position: static;
         }
 
         .order-form h2 {
@@ -535,9 +650,99 @@
     const PRODUCT_CODES = {};
     const PRODUCT_PRICES = {};
     PRODUCTS.forEach(function (p) {
-        PRODUCT_CODES[p.code.toUpperCase()] = p.name;
+        PRODUCT_CODES[p.code.toUpperCase()] = p;
         PRODUCT_PRICES[p.name] = p.price;
     });
+
+    const CART_KEY = 'ambertechel_cart';
+
+    function loadCart() {
+        try {
+            return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveCart(cart) {
+        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    }
+
+    function renderCart() {
+        const cart = loadCart();
+        const container = document.getElementById('cart-items');
+        const empty = document.getElementById('cart-empty');
+        container.innerHTML = '';
+
+        if (cart.length === 0) {
+            empty.style.display = 'block';
+            updateShippingSummary();
+            return;
+        }
+        empty.style.display = 'none';
+
+        cart.forEach(function (item, index) {
+            const row = document.createElement('div');
+            row.className = 'cart-item';
+            const lineTotal = (item.price * item.quantity).toFixed(2);
+            row.innerHTML =
+                '<div class="cart-item-info">' +
+                '<span class="cart-item-name">' + item.name + '</span>' +
+                '<span class="cart-item-meta">$' + item.price.toFixed(2) + ' x ' + item.quantity + '</span>' +
+                '</div>' +
+                '<div class="cart-item-right">' +
+                '<span class="cart-item-total">$' + lineTotal + '</span>' +
+                '<button class="cart-remove" data-index="' + index + '" type="button" aria-label="Remove">✕</button>' +
+                '</div>';
+            container.appendChild(row);
+        });
+
+        document.querySelectorAll('.cart-remove').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const cart = loadCart();
+                cart.splice(parseInt(btn.dataset.index, 10), 1);
+                saveCart(cart);
+                renderCart();
+            });
+        });
+
+        updateShippingSummary();
+    }
+
+    function addToCart() {
+        const productInput = document.getElementById('product');
+        const quantityInput = document.getElementById('quantity');
+        const name = productInput.value;
+        const quantity = parseInt(quantityInput.value, 10) || 1;
+        const price = PRODUCT_PRICES[name];
+
+        if (!name) {
+            showStatus('No product selected. Please visit the product link to place an order.', 'error');
+            return false;
+        }
+        if (price === null) {
+            showStatus('This product is not available for online ordering yet.', 'error');
+            return false;
+        }
+        if (price === undefined) {
+            showStatus('Unable to determine the price for this product.', 'error');
+            return false;
+        }
+
+        const product = PRODUCTS.find(function (p) { return p.name === name; }) || {};
+        const cart = loadCart();
+        const existing = cart.find(function (i) { return i.name === name; });
+        if (existing) {
+            existing.quantity = Math.min(99, existing.quantity + quantity);
+        } else {
+            cart.push({ name: name, code: product.code || '', price: price, quantity: quantity });
+        }
+        saveCart(cart);
+        renderCart();
+
+        showStatus(name + ' x' + quantity + ' added to your cart. Click Place Order when ready.', 'success');
+        return true;
+    }
 
     function renderProductList() {
         const list = document.getElementById('product-list');
@@ -563,21 +768,20 @@
         }
 
         const input = document.getElementById('product');
-        if (input) input.value = product;
+        if (input) input.value = product.name;
 
         const title = document.getElementById('order-title');
-        if (title) title.textContent = 'Place Your Order for ' + product;
+        if (title) title.textContent = 'Place Your Order for ' + product.name;
 
         const descBox = document.getElementById('product-description');
-        const match = PRODUCTS.find(function (p) { return p.code.toUpperCase() === code; });
-        if (descBox && match && match.description) {
-            descBox.textContent = match.description;
+        if (descBox && product.description) {
+            descBox.textContent = product.description;
             descBox.style.display = 'block';
         } else if (descBox) {
             descBox.style.display = 'none';
         }
 
-        showStatus(product + ' added to your order. Complete the form below to place your order.', 'success');
+        showStatus(product.name + ' selected. Set quantity and click Add to Cart.', 'success');
         const form = document.getElementById('order-form');
         if (form) {
             form.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -611,18 +815,18 @@
     function submitOrder(form, orderNumber, noteText, shippingCost) {
         const formData = new FormData(form);
         const name = formData.get('name');
-        const product = formData.get('product');
-        const quantity = formData.get('quantity') || '1';
-        const subtotal = PRODUCT_PRICES[product] === null ? 'Quote' : (PRODUCT_PRICES[product] * quantity).toFixed(2);
+        const cart = loadCart();
+        const itemsText = cart.map(function (i) { return i.name + ' x' + i.quantity; }).join(', ');
+        const subtotal = cart.reduce(function (sum, i) { return sum + i.price * i.quantity; }, 0);
         const shipping = shippingCost === 0 ? 'Quote' : shippingCost.toFixed(2);
-        const total = PRODUCT_PRICES[product] === null ? 'Quote' : ((PRODUCT_PRICES[product] * quantity) + shippingCost).toFixed(2);
+        const total = subtotal === 0 ? 'Quote' : (subtotal + shippingCost).toFixed(2);
 
         document.getElementById('hidden-subject').value =
-            'New Order: ' + product + ' x' + quantity + ' (Order #' + orderNumber + ')';
+            'New Order: ' + itemsText + ' (Order #' + orderNumber + ')';
         document.getElementById('hidden-from-name').value = name || 'Anonymous';
 
-        const btn = document.getElementById('submit-btn');
-        const btnText = document.getElementById('btn-text');
+        const btn = document.getElementById('place-order-btn');
+        const btnText = document.getElementById('place-order-btn-text');
         btn.disabled = true;
         btnText.textContent = 'Placing Order...';
         isSubmitting = true;
@@ -632,14 +836,13 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 access_key: form.elements.access_key.value,
-                subject: 'New Order: ' + product + ' x' + quantity + ' (Order #' + orderNumber + ')',
+                subject: 'New Order: ' + itemsText + ' (Order #' + orderNumber + ')',
                 from_name: name,
                 name: name,
                 email: formData.get('email'),
                 message: 'Order #' + orderNumber +
-                    '\nProduct: ' + product +
-                    '\nQuantity: ' + quantity +
-                    '\nSubtotal: $' + subtotal +
+                    '\nItems:\n' + cart.map(function (i) { return '- ' + i.name + ' x' + i.quantity + ' ($' + (i.price * i.quantity).toFixed(2) + ')'; }).join('\n') +
+                    '\nSubtotal: $' + subtotal.toFixed(2) +
                     '\nShipping: $' + shipping +
                     '\nTotal: $' + total +
                     '\nShipping Address:\n' + getAddressText(formData)
@@ -653,6 +856,8 @@
                 lastSubmitTime = Date.now();
                 showStatus(`Thank you ${name}! Order #${orderNumber} submitted. Your order info "${noteText}" was copied — paste it into the CashApp note to complete your payment.`, 'success');
                 form.reset();
+                saveCart([]);
+                renderCart();
             })
             .catch(error => {
                 console.error('Failed to place order:', error);
@@ -665,8 +870,12 @@
             });
     }
 
-    async function handleOrderSubmit(event) {
+    function handleAddToCart(event) {
         event.preventDefault();
+        addToCart();
+    }
+
+    function handlePlaceOrder() {
         if (isSubmitting) return;
 
         const now = Date.now();
@@ -678,31 +887,22 @@
         const honeypot = document.getElementById('website').value;
         if (honeypot) return;
 
-        const form = event.target;
+        const form = document.getElementById('order-form');
+        if (!form.reportValidity()) return;
+
         const formData = new FormData(form);
-        const product = formData.get('product');
-        const quantity = parseInt(formData.get('quantity'), 10) || 1;
-        const price = PRODUCT_PRICES[product];
+        const cart = loadCart();
         const email = formData.get('email') || '';
 
-        if (!product) {
-            showStatus('No product selected. Please visit the product link to place an order.', 'error');
-            return;
-        }
-
-        if (price === null) {
-            showStatus('This product is not available for online ordering yet.', 'error');
-            return;
-        }
-
-        if (price === undefined) {
-            showStatus('Unable to determine the price for this product.', 'error');
+        if (cart.length === 0) {
+            showStatus('Your cart is empty. Add a product first.', 'error');
             return;
         }
 
         const orderNumber = generateOrderNumber();
         const shippingCost = getShippingCost(formData.get('state'));
-        const total = (price * quantity + shippingCost).toFixed(2);
+        const subtotal = cart.reduce(function (sum, i) { return sum + i.price * i.quantity; }, 0);
+        const total = (subtotal + shippingCost).toFixed(2);
 
         const noteText = copyOrderInfo(orderNumber, email);
         pendingOrder = { form, orderNumber, total, noteText, shippingCost };
@@ -734,28 +934,31 @@
 
     function updateShippingSummary() {
         const stateEl = document.getElementById('state');
-        const quantityEl = document.getElementById('quantity');
         const summaryEl = document.getElementById('shipping-summary');
-        const product = document.getElementById('product').value;
-        if (!summaryEl || !stateEl || !quantityEl || !product) return;
+        if (!summaryEl || !stateEl) return;
 
         const state = stateEl.value;
-        const quantity = parseInt(quantityEl.value, 10) || 0;
-        const price = PRODUCT_PRICES[product];
-        if (!state || !price || quantity < 1) {
+        const cart = loadCart();
+        if (!state || cart.length === 0) {
             summaryEl.style.display = 'none';
             return;
         }
 
+        const subtotal = cart.reduce(function (sum, i) { return sum + i.price * i.quantity; }, 0);
         const shipping = getShippingCost(state);
-        document.getElementById('subtotal-display').textContent = (price * quantity).toFixed(2);
+        document.getElementById('subtotal-display').textContent = subtotal.toFixed(2);
         document.getElementById('shipping-display').textContent = shipping.toFixed(2);
-        document.getElementById('total-display').textContent = (price * quantity + shipping).toFixed(2);
+        document.getElementById('total-display').textContent = (subtotal + shipping).toFixed(2);
         summaryEl.style.display = 'block';
     }
 
     document.addEventListener('DOMContentLoaded', applyProductFromUrl);
     document.addEventListener('DOMContentLoaded', renderProductList);
+    document.addEventListener('DOMContentLoaded', renderCart);
+    document.addEventListener('click', function (e) {
+        if (e.target && e.target.id === 'place-order-btn') handlePlaceOrder();
+        if (e.target && e.target.id === 'add-to-cart-btn') addToCart();
+    });
     document.addEventListener('change', function (e) {
         if (e.target && e.target.id === 'state') updateShippingSummary();
     });
