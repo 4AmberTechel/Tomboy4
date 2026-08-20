@@ -1,0 +1,6 @@
+#!/bin/sh
+# Runs after every successful commit. Regenerates any missing product QR codes
+# (skips existing valid PNGs so already-blocked/rate-limited codes are kept).
+cd "$(dirname "$0")/.." || exit 0
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\generateQRCodes.ps1"
+exit 0
