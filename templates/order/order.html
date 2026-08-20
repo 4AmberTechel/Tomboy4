@@ -39,12 +39,6 @@
                                   rows="3"></textarea>
                     </div>
 
-                    <div class="form-group">
-                        <label for="cashapp">CashApp Handle</label>
-                        <input id="cashapp" name="cashapp" placeholder="$AmberTechel" required type="text">
-                        <p class="form-hint">Enter your CashApp handle so payment can be collected (example: $AmberTechel)</p>
-                    </div>
-
                     <button class="submit-btn" type="submit" id="submit-btn">
                         <span class="btn-text" id="btn-text">Place Order</span>
                         <span class="btn-icon">🛒</span>
@@ -371,7 +365,6 @@
         const name = formData.get('name');
         const product = formData.get('product');
         const quantity = formData.get('quantity') || '1';
-        const cashapp = formData.get('cashapp') || 'Not provided';
 
         document.getElementById('hidden-subject').value =
             'New Order: ' + product + ' x' + quantity + ' (Order #' + orderNumber + ')';
@@ -396,7 +389,6 @@
                     '\nProduct: ' + product +
                     '\nQuantity: ' + quantity +
                     '\nTotal: $' + (PRODUCT_PRICES[product] === null ? 'Quote' : (PRODUCT_PRICES[product] * quantity).toFixed(2)) +
-                    '\nCashApp Handle: ' + cashapp +
                     '\nShipping Address:\n' + formData.get('address')
             })
         })
