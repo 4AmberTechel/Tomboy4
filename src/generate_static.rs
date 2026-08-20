@@ -63,10 +63,6 @@ fn apply_github_pages_nav_links(html: String) -> String {
         r#"<a href="/contact/" class="nav-item">Contact</a>"#,
         r#"<a href="/contact" class="nav-item">Contact</a>"#,
     )
-    .replace(
-        r#"<a href="/order/" class="nav-item">Order</a>"#,
-        r#"<a href="/order" class="nav-item">Order</a>"#,
-    )
 }
 
 fn generate_page(title: &str, content: &str, version: &str, page_url: &str) -> String {
@@ -859,8 +855,20 @@ fn main() {
                     "/order/",
                 );
                 let file_path = order_dir.join("index.html");
-                fs::write(&file_path, html).expect("Failed to write order/index.html");
+                fs::write(&file_path, &html).expect("Failed to write order/index.html");
                 println!("Generated order/index.html");
+
+                // Generate per-product order pages for direct URLs (e.g. /order/ZPLB)
+                for (code, product) in [
+                    ("ZPLB", "Plumping Lip Balm"),
+                ] {
+                    let product_dir = order_dir.join(code);
+                    create_dir_if_not_exists(&product_dir);
+                    let product_file = product_dir.join("index.html");
+                    fs::write(&product_file, &html)
+                        .expect(&format!("Failed to write order/{}/index.html", code));
+                    println!("Generated order/{}/index.html ({} auto-selected)", code, product);
+                }
             }
             Err(e) => {
                 println!("Failed to read order template: {}", e);

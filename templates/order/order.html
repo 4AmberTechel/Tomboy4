@@ -22,6 +22,7 @@
                         <select id="product" name="product" required>
                             <option value="">Select a product...</option>
                             <option value="Autographed 8x10 Photo">Autographed 8x10 Photo — $25</option>
+                            <option value="Plumping Lip Balm">Plumping Lip Balm — $12</option>
                             <option value="T-Shirt">T-Shirt — $30</option>
                             <option value="Hoodie">Hoodie — $55</option>
                             <option value="Album CD (Signed)">Album CD (Signed) — $15</option>
@@ -355,6 +356,27 @@
 </style>
 
 <script>
+    const PRODUCT_CODES = {
+        'ZPLB': 'Plumping Lip Balm'
+    };
+
+    function applyProductFromUrl() {
+        const segments = window.location.pathname.split('/').filter(Boolean);
+        const code = (segments[segments.length - 1] || '').toUpperCase();
+        const product = PRODUCT_CODES[code];
+        if (!product) return;
+
+        const select = document.getElementById('product');
+        if (!select) return;
+        select.value = product;
+
+        showStatus('Plumping Lip Balm added to your order. Complete the form below to place your order.', 'success');
+        const form = document.getElementById('order-form');
+        if (form) {
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
     let lastSubmitTime = 0;
     let isSubmitting = false;
 
@@ -436,4 +458,6 @@
             }, 8000);
         }
     }
+
+    document.addEventListener('DOMContentLoaded', applyProductFromUrl);
 </script>
