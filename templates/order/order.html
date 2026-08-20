@@ -15,9 +15,6 @@
                 <form class="message-form" id="order-form" onsubmit="handleAddToCart(event)">
                     <div id="form-status" class="form-status"></div>
 
-                    <input type="hidden" name="access_key" value="602eb5a2-6a00-4c2b-b046-08f6311be5be">
-                    <input type="hidden" name="subject" id="hidden-subject">
-                    <input type="hidden" name="from_name" id="hidden-from-name">
                     <input type="hidden" id="product" name="product">
 
                     <div style="position:absolute;left:-9999px" aria-hidden="true">
@@ -29,90 +26,7 @@
                         <input id="quantity" name="quantity" type="number" min="1" max="99" value="1" required>
                     </div>
 
-                    <div class="form-group">
-                        <label for="name">Your Name</label>
-                        <input id="name" name="name" placeholder="Full name" required type="text">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email <span class="optional">(required for shipping confirmation)</span></label>
-                        <input id="email" name="email" placeholder="your.email@example.com" required type="email">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="address">Street Address</label>
-                        <input id="address" name="address" placeholder="Street address, apt/unit" required type="text">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="city">Town / City</label>
-                        <input id="city" name="city" placeholder="City" required type="text">
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="state">State</label>
-                            <select id="state" name="state" required>
-                                <option value="" selected disabled>Select state</option>
-                                <option value="AL">Alabama</option>
-                                <option value="AK">Alaska</option>
-                                <option value="AZ">Arizona</option>
-                                <option value="AR">Arkansas</option>
-                                <option value="CA">California</option>
-                                <option value="CO">Colorado</option>
-                                <option value="CT">Connecticut</option>
-                                <option value="DE">Delaware</option>
-                                <option value="FL">Florida</option>
-                                <option value="GA">Georgia</option>
-                                <option value="HI">Hawaii</option>
-                                <option value="ID">Idaho</option>
-                                <option value="IL">Illinois</option>
-                                <option value="IN">Indiana</option>
-                                <option value="IA">Iowa</option>
-                                <option value="KS">Kansas</option>
-                                <option value="KY">Kentucky</option>
-                                <option value="LA">Louisiana</option>
-                                <option value="ME">Maine</option>
-                                <option value="MD">Maryland</option>
-                                <option value="MA">Massachusetts</option>
-                                <option value="MI">Michigan</option>
-                                <option value="MN">Minnesota</option>
-                                <option value="MS">Mississippi</option>
-                                <option value="MO">Missouri</option>
-                                <option value="MT">Montana</option>
-                                <option value="NE">Nebraska</option>
-                                <option value="NV">Nevada</option>
-                                <option value="NH">New Hampshire</option>
-                                <option value="NJ">New Jersey</option>
-                                <option value="NM">New Mexico</option>
-                                <option value="NY">New York</option>
-                                <option value="NC">North Carolina</option>
-                                <option value="ND">North Dakota</option>
-                                <option value="OH">Ohio</option>
-                                <option value="OK">Oklahoma</option>
-                                <option value="OR">Oregon</option>
-                                <option value="PA">Pennsylvania</option>
-                                <option value="RI">Rhode Island</option>
-                                <option value="SC">South Carolina</option>
-                                <option value="SD">South Dakota</option>
-                                <option value="TN">Tennessee</option>
-                                <option value="TX">Texas</option>
-                                <option value="UT">Utah</option>
-                                <option value="VT">Vermont</option>
-                                <option value="VA">Virginia</option>
-                                <option value="WA">Washington</option>
-                                <option value="WV">West Virginia</option>
-                                <option value="WI">Wisconsin</option>
-                                <option value="WY">Wyoming</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="zip">ZIP Code</label>
-                            <input id="zip" name="zip" placeholder="ZIP" required type="text" pattern="[0-9]{5}"
-                                   title="Enter a 5-digit ZIP code">
-                        </div>
-                    </div>
+                    <p class="form-hint">Click Add to Cart, then review your order and check out on the right.</p>
 
                     <button class="submit-btn" type="button" id="add-to-cart-btn">
                         <span class="btn-text" id="btn-text">Add to Cart</span>
@@ -127,11 +41,9 @@
                 <h2>Your Cart</h2>
                 <div class="cart-empty" id="cart-empty">Your cart is empty.<br>Add a product to get started.</div>
                 <div class="cart-items" id="cart-items"></div>
-                <div class="shipping-estimate" id="shipping-summary" style="display:none">
-                    <p>Subtotal: $<span id="subtotal-display">0.00</span></p>
-                    <p>Shipping: $<span id="shipping-display">0.00</span></p>
-                    <p class="shipping-total"><strong>Total: $<span id="total-display">0.00</span></strong></p>
-                    <p class="shipping-note">Shipping is a Priority Mail estimate based on your state.</p>
+                <div class="cart-totals" id="cart-totals" style="display:none">
+                    <p>Subtotal: $<span id="cart-subtotal-display">0.00</span></p>
+                    <p class="shipping-note">Shipping and total are calculated at checkout.</p>
                 </div>
                 <button class="submit-btn place-order-btn" type="button" id="place-order-btn">
                     <span class="btn-text" id="place-order-btn-text">Place Order</span>
@@ -139,6 +51,118 @@
                 </button>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="checkout-modal-overlay" id="checkout-modal">
+    <div class="checkout-modal">
+        <div class="checkout-modal-header">
+            <h3>Checkout</h3>
+            <button class="checkout-close" id="checkout-close" type="button" aria-label="Close">✕</button>
+        </div>
+        <form class="message-form" id="checkout-form">
+            <div id="checkout-status" class="form-status"></div>
+
+            <input type="hidden" name="access_key" value="602eb5a2-6a00-4c2b-b046-08f6311be5be">
+            <input type="hidden" name="subject" id="hidden-subject">
+            <input type="hidden" name="from_name" id="hidden-from-name">
+
+            <div class="form-group">
+                <label for="name">Your Name</label>
+                <input id="name" name="name" placeholder="Full name" required type="text">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email <span class="optional">(required for shipping confirmation)</span></label>
+                <input id="email" name="email" placeholder="your.email@example.com" required type="email">
+            </div>
+
+            <div class="form-group">
+                <label for="address">Street Address</label>
+                <input id="address" name="address" placeholder="Street address, apt/unit" required type="text">
+            </div>
+
+            <div class="form-group">
+                <label for="city">Town / City</label>
+                <input id="city" name="city" placeholder="City" required type="text">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="state">State</label>
+                    <select id="state" name="state" required>
+                        <option value="" selected disabled>Select state</option>
+                        <option value="AL">Alabama</option>
+                        <option value="AK">Alaska</option>
+                        <option value="AZ">Arizona</option>
+                        <option value="AR">Arkansas</option>
+                        <option value="CA">California</option>
+                        <option value="CO">Colorado</option>
+                        <option value="CT">Connecticut</option>
+                        <option value="DE">Delaware</option>
+                        <option value="FL">Florida</option>
+                        <option value="GA">Georgia</option>
+                        <option value="HI">Hawaii</option>
+                        <option value="ID">Idaho</option>
+                        <option value="IL">Illinois</option>
+                        <option value="IN">Indiana</option>
+                        <option value="IA">Iowa</option>
+                        <option value="KS">Kansas</option>
+                        <option value="KY">Kentucky</option>
+                        <option value="LA">Louisiana</option>
+                        <option value="ME">Maine</option>
+                        <option value="MD">Maryland</option>
+                        <option value="MA">Massachusetts</option>
+                        <option value="MI">Michigan</option>
+                        <option value="MN">Minnesota</option>
+                        <option value="MS">Mississippi</option>
+                        <option value="MO">Missouri</option>
+                        <option value="MT">Montana</option>
+                        <option value="NE">Nebraska</option>
+                        <option value="NV">Nevada</option>
+                        <option value="NH">New Hampshire</option>
+                        <option value="NJ">New Jersey</option>
+                        <option value="NM">New Mexico</option>
+                        <option value="NY">New York</option>
+                        <option value="NC">North Carolina</option>
+                        <option value="ND">North Dakota</option>
+                        <option value="OH">Ohio</option>
+                        <option value="OK">Oklahoma</option>
+                        <option value="OR">Oregon</option>
+                        <option value="PA">Pennsylvania</option>
+                        <option value="RI">Rhode Island</option>
+                        <option value="SC">South Carolina</option>
+                        <option value="SD">South Dakota</option>
+                        <option value="TN">Tennessee</option>
+                        <option value="TX">Texas</option>
+                        <option value="UT">Utah</option>
+                        <option value="VT">Vermont</option>
+                        <option value="VA">Virginia</option>
+                        <option value="WA">Washington</option>
+                        <option value="WV">West Virginia</option>
+                        <option value="WI">Wisconsin</option>
+                        <option value="WY">Wyoming</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="zip">ZIP Code</label>
+                    <input id="zip" name="zip" placeholder="ZIP" required type="text" pattern="[0-9]{5}"
+                           title="Enter a 5-digit ZIP code">
+                </div>
+            </div>
+
+            <div class="shipping-estimate" id="shipping-summary" style="display:none">
+                <p>Subtotal: $<span id="subtotal-display">0.00</span></p>
+                <p>Shipping: $<span id="shipping-display">0.00</span></p>
+                <p class="shipping-total"><strong>Total: $<span id="total-display">0.00</span></strong></p>
+                <p class="shipping-note">Shipping is a Priority Mail estimate based on your state.</p>
+            </div>
+
+            <button class="submit-btn" type="button" id="checkout-continue-btn">
+                <span class="btn-text" id="checkout-btn-text">Continue to Payment</span>
+            </button>
+        </form>
     </div>
 </div>
 
@@ -335,6 +359,99 @@
     }
 
     .place-order-btn {
+        width: 100%;
+    }
+
+    .cart-totals {
+        border-top: 2px solid #e0e0ff;
+        padding-top: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .cart-totals p {
+        margin: 0.25rem 0;
+        color: #333;
+        font-size: 1rem;
+    }
+
+    .cart-totals .shipping-note {
+        font-size: 0.8rem;
+        color: #666;
+        font-style: italic;
+    }
+
+    .checkout-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .checkout-modal-overlay.show {
+        display: flex;
+    }
+
+    .checkout-modal {
+        background: #fff;
+        border-radius: 20px;
+        padding: 2.5rem;
+        max-width: 520px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+        animation: slideIn 0.4s ease;
+    }
+
+    .checkout-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .checkout-modal-header h3 {
+        color: #6b73ff;
+        font-size: 1.5rem;
+        margin: 0;
+    }
+
+    .checkout-close {
+        background: #f5f6ff;
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        color: #666;
+        font-size: 1rem;
+        cursor: pointer;
+        line-height: 1;
+        transition: all 0.2s ease;
+    }
+
+    .checkout-close:hover {
+        background: #ff4d4d;
+        color: white;
+    }
+
+    .checkout-modal .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+    .checkout-modal .shipping-estimate {
+        margin-bottom: 1.2rem;
+    }
+
+    #checkout-continue-btn {
         width: 100%;
     }
 
@@ -672,14 +789,19 @@
         const cart = loadCart();
         const container = document.getElementById('cart-items');
         const empty = document.getElementById('cart-empty');
+        const totals = document.getElementById('cart-totals');
         container.innerHTML = '';
 
         if (cart.length === 0) {
             empty.style.display = 'block';
-            updateShippingSummary();
+            totals.style.display = 'none';
             return;
         }
         empty.style.display = 'none';
+        totals.style.display = 'block';
+
+        const subtotal = cart.reduce(function (sum, i) { return sum + i.price * i.quantity; }, 0);
+        document.getElementById('cart-subtotal-display').textContent = subtotal.toFixed(2);
 
         cart.forEach(function (item, index) {
             const row = document.createElement('div');
@@ -825,8 +947,8 @@
             'New Order: ' + itemsText + ' (Order #' + orderNumber + ')';
         document.getElementById('hidden-from-name').value = name || 'Anonymous';
 
-        const btn = document.getElementById('place-order-btn');
-        const btnText = document.getElementById('place-order-btn-text');
+        const btn = document.getElementById('checkout-continue-btn');
+        const btnText = document.getElementById('checkout-btn-text');
         btn.disabled = true;
         btnText.textContent = 'Placing Order...';
         isSubmitting = true;
@@ -865,7 +987,7 @@
             })
             .finally(() => {
                 btn.disabled = false;
-                btnText.textContent = 'Place Order';
+                btnText.textContent = 'Continue to Payment';
                 isSubmitting = false;
             });
     }
@@ -877,17 +999,28 @@
 
     function handlePlaceOrder() {
         if (isSubmitting) return;
+        const cart = loadCart();
+        if (cart.length === 0) {
+            showStatus('Your cart is empty. Add a product first.', 'error');
+            return;
+        }
+        renderCheckoutSummary();
+        document.getElementById('checkout-modal').classList.add('show');
+    }
+
+    function handleCheckoutContinue() {
+        if (isSubmitting) return;
 
         const now = Date.now();
         if (now - lastSubmitTime < 30000) {
-            showStatus('Please wait 30 seconds before placing another order.', 'error');
+            showCheckoutStatus('Please wait 30 seconds before placing another order.', 'error');
             return;
         }
 
         const honeypot = document.getElementById('website').value;
         if (honeypot) return;
 
-        const form = document.getElementById('order-form');
+        const form = document.getElementById('checkout-form');
         if (!form.reportValidity()) return;
 
         const formData = new FormData(form);
@@ -895,7 +1028,7 @@
         const email = formData.get('email') || '';
 
         if (cart.length === 0) {
-            showStatus('Your cart is empty. Add a product first.', 'error');
+            showCheckoutStatus('Your cart is empty. Add a product first.', 'error');
             return;
         }
 
@@ -907,6 +1040,7 @@
         const noteText = copyOrderInfo(orderNumber, email);
         pendingOrder = { form, orderNumber, total, noteText, shippingCost };
 
+        document.getElementById('checkout-modal').classList.remove('show');
         document.getElementById('clipboard-modal').classList.add('show');
     }
 
@@ -929,6 +1063,34 @@
             setTimeout(() => {
                 el.className = 'form-status';
             }, 8000);
+        }
+    }
+
+    function showCheckoutStatus(message, type) {
+        const el = document.getElementById('checkout-status');
+        el.textContent = message;
+        el.className = 'form-status show ' + type;
+
+        if (type === 'success') {
+            setTimeout(() => {
+                el.className = 'form-status';
+            }, 8000);
+        }
+    }
+
+    function renderCheckoutSummary() {
+        const cart = loadCart();
+        const subtotal = cart.reduce(function (sum, i) { return sum + i.price * i.quantity; }, 0);
+        document.getElementById('subtotal-display').textContent = subtotal.toFixed(2);
+        const stateEl = document.getElementById('state');
+        const summaryEl = document.getElementById('shipping-summary');
+        if (stateEl.value) {
+            const shipping = getShippingCost(stateEl.value);
+            document.getElementById('shipping-display').textContent = shipping.toFixed(2);
+            document.getElementById('total-display').textContent = (subtotal + shipping).toFixed(2);
+            summaryEl.style.display = 'block';
+        } else {
+            summaryEl.style.display = 'none';
         }
     }
 
@@ -958,6 +1120,10 @@
     document.addEventListener('click', function (e) {
         if (e.target && e.target.id === 'place-order-btn') handlePlaceOrder();
         if (e.target && e.target.id === 'add-to-cart-btn') addToCart();
+        if (e.target && e.target.id === 'checkout-continue-btn') handleCheckoutContinue();
+        if (e.target && e.target.id === 'checkout-close') {
+            document.getElementById('checkout-modal').classList.remove('show');
+        }
     });
     document.addEventListener('change', function (e) {
         if (e.target && e.target.id === 'state') updateShippingSummary();
