@@ -5,6 +5,66 @@ og:image: /global-images/og-image.webp
 -->
 <style>
     .main-content { background-image: url('/templates/bio/background/bkgrnd.png'); }
+
+    /* Readability: each section sits on its own peach card over the photo background (matches music page). */
+    .bio-content {
+        background: none;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .bio-header,
+    .bio-intro,
+    .bio-timeline,
+    .bio-skills {
+        background: linear-gradient(135deg, rgba(255, 243, 232, 0.96), rgba(255, 227, 236, 0.96));
+        border: none;
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 0 0 2rem;
+        max-width: none;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+    }
+
+    /* Keep the timeline line and markers inside the card padding. */
+    .bio-timeline {
+        padding-left: calc(2rem + 30px);
+    }
+
+    .bio-timeline::before {
+        left: 2rem;
+        top: 2rem;
+        bottom: 2rem;
+    }
+
+    .bio-intro {
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .bio-content h2 {
+        color: #c2185b;
+    }
+
+    @media (max-width: 768px) {
+        .bio-header,
+        .bio-intro,
+        .bio-timeline,
+        .bio-skills {
+            padding: 1.25rem;
+        }
+
+        .bio-timeline {
+            padding-left: calc(1.25rem + 20px);
+        }
+
+        .bio-timeline::before {
+            left: 1.25rem;
+            top: 1.25rem;
+            bottom: 1.25rem;
+        }
+    }
 </style>
 <section class="bio-section">
     <div class="bio-header">

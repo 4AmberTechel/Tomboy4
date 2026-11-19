@@ -5,6 +5,53 @@ og:image: /global-images/og-image.webp
 -->
 <style>
     .main-content { background-image: url('/templates/acting/Background/bckgrnd.png'); }
+
+    /* Readability: each section sits on its own peach card over the photo background (matches music page). */
+    .acting-content {
+        background: none;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .acting-header,
+    .acting-intro,
+    .acting-quote,
+    .acting-links-section,
+    .current-projects,
+    .featured-work,
+    .videos-section,
+    .resumes-row {
+        background: linear-gradient(135deg, rgba(255, 243, 232, 0.96), rgba(255, 227, 236, 0.96));
+        border: none;
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 0 0 2rem;
+        max-width: none;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+    }
+
+    .acting-intro {
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .acting-content h2 {
+        color: #c2185b;
+    }
+
+    @media (max-width: 768px) {
+        .acting-header,
+        .acting-intro,
+        .acting-quote,
+        .acting-links-section,
+        .current-projects,
+        .featured-work,
+        .videos-section,
+        .resumes-row {
+            padding: 1.25rem;
+        }
+    }
 </style>
 <section class="acting-section-page">
     <div class="acting-header">

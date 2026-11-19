@@ -733,6 +733,8 @@ async fn main() {
         .route("/arts/", get(arts_page_handler))
         .route("/contact/", get(contact_page_handler).post(contact_form_handler))
         .route("/order/", get(order_page_handler))
+        // Same page; its JS picks the product from the code in the URL.
+        .route("/order/:code/", get(order_page_handler))
         .nest_service("/docs", ServeDir::new("docs"))
         .nest_service("/templates", ServeDir::new("templates"))
         .nest_service("/order/images", ServeDir::new("products/images"))

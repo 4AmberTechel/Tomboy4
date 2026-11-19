@@ -27,6 +27,9 @@ pub struct Product {
     /// Products sharing a group are listed as one entry with a dropdown.
     #[serde(default)]
     pub group: Option<String>,
+    /// Store section heading (e.g. Lips, Skincare).
+    #[serde(default)]
+    pub category: Option<String>,
 }
 
 pub fn read_products() -> Vec<Product> {

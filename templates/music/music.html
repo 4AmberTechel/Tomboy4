@@ -5,6 +5,70 @@ og:image: /global-images/og-image.webp
 -->
 <style>
     .main-content { background-image: url('/templates/music/background/bkgrnd.png'); }
+
+    /* Readability: each section sits on its own solid card over the busy background. */
+    .music-content {
+        background: none;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .music-intro,
+    .music-instruments,
+    .music-genres,
+    .album-feature,
+    .track-listing,
+    .videos-section,
+    .musical-resume-section {
+        background: linear-gradient(135deg, rgba(255, 243, 232, 0.96), rgba(255, 227, 236, 0.96));
+        border: none;
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 0 0 2rem;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+    }
+
+    .album-feature {
+        background: linear-gradient(135deg, rgba(255, 232, 214, 0.97), rgba(255, 214, 229, 0.97));
+    }
+
+    .music-header {
+        background: linear-gradient(135deg, rgba(255, 243, 232, 0.96), rgba(255, 227, 236, 0.96));
+    }
+
+    .music-intro {
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .music-instruments h2,
+    .music-genres h2,
+    .track-listing h2,
+    .videos-section h2,
+    .musical-resume-section h2 {
+        color: #c2185b;
+    }
+
+    .instrument-name {
+        color: #333;
+    }
+
+    .track-genre {
+        color: #666;
+    }
+
+    @media (max-width: 768px) {
+        .music-intro,
+        .music-instruments,
+        .music-genres,
+        .album-feature,
+        .track-listing,
+        .videos-section,
+        .musical-resume-section {
+            padding: 1.25rem;
+        }
+    }
 </style>
 <section class="music-section-page">
     <div class="music-header">

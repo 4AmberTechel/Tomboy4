@@ -5,15 +5,24 @@
     <div class="order-container">
         <div class="product-list-section">
             <h2>All Products</h2>
-            <p class="product-list-subtitle">Click a product to place an order</p>
+            <p class="product-list-subtitle">Tap a product to see details</p>
             <div class="product-list" id="product-list"></div>
         </div>
         <div class="order-form-section">
             <div class="order-form">
-                <h2 id="order-title">Place Your Order</h2>
+                <h2 id="order-title">Pick a Product</h2>
+                <p class="product-price-display" id="product-price-display" style="display:none"></p>
+                <p class="order-empty-hint" id="order-empty-hint">Choose something from the list to see details and add it to your cart.</p>
+                <div class="form-group" id="product-variant" style="display:none">
+                    <label id="variant-label">Choose type</label>
+                    <details class="variant-picker" id="variant-picker">
+                        <summary id="variant-current" aria-labelledby="variant-label variant-current"></summary>
+                        <div class="variant-options" id="variant-options" role="listbox" aria-labelledby="variant-label"></div>
+                    </details>
+                </div>
                 <div class="product-description" id="product-description" style="display:none"></div>
                 <div class="product-image" id="product-image" style="display:none"></div>
-                <form class="message-form" id="order-form" onsubmit="handleAddToCart(event)">
+                <form class="message-form" id="order-form" onsubmit="handleAddToCart(event)" style="display:none">
                     <div id="form-status" class="form-status"></div>
 
                     <input type="hidden" id="product" name="product">
@@ -24,7 +33,11 @@
 
                     <div class="form-group">
                         <label for="quantity">Quantity</label>
-                        <input id="quantity" name="quantity" type="number" min="1" max="99" value="1" required>
+                        <div class="qty-stepper">
+                            <button type="button" class="qty-btn" data-step="-1" aria-label="Decrease quantity">−</button>
+                            <input id="quantity" name="quantity" type="number" min="1" max="99" value="1" required>
+                            <button type="button" class="qty-btn" data-step="1" aria-label="Increase quantity">+</button>
+                        </div>
                     </div>
 
                     <p class="form-hint">Click Add to Cart, then review your order and check out on the right.</p>
@@ -182,10 +195,10 @@
 <style>
     .order-container {
         display: grid;
-        grid-template-columns: 240px 1fr 300px;
+        grid-template-columns: 290px 1fr 300px;
         gap: 1.5rem;
-        margin-top: 3rem;
-        max-width: 1200px;
+        margin-top: 2rem;
+        max-width: 1300px;
         margin-left: auto;
         margin-right: auto;
         align-items: start;
@@ -222,12 +235,27 @@
         overflow-y: auto;
     }
 
+    .page-section > .page-title,
+    .page-section > .page-subtitle {
+        color: #fff;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .product-list-section {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .product-list {
+        max-height: 70vh;
+        padding: 4px;
+    }
+
     .product-list-item {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 48px 1fr auto;
         align-items: center;
-        gap: 1rem;
-        padding: 0.75rem 1rem;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
         background: #f5f6ff;
         border: 2px solid #e0e0ff;
         border-radius: 12px;
@@ -254,16 +282,200 @@
         white-space: nowrap;
     }
 
-    .product-group {
-        flex-wrap: wrap;
+    .product-category {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #6b73ff;
+        margin: 0.75rem 0 0.1rem;
+        padding-bottom: 0.3rem;
+        border-bottom: 1px solid #e0e0ff;
     }
 
-    .product-group select {
-        flex-basis: 100%;
+    .product-category:first-child {
+        margin-top: 0;
+    }
+
+    .product-list-item.active {
+        border-color: #ff6b9d;
+        background: #fff0f6;
+        box-shadow: 0 6px 16px rgba(255, 107, 157, 0.2);
+    }
+
+    .product-list-item:focus-visible {
+        outline: 3px solid #6b73ff;
+        outline-offset: 2px;
+    }
+
+    .product-thumb {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        background: #fff;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .variant-picker {
+        position: relative;
+    }
+
+    .variant-picker summary {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .variant-picker summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .variant-picker[open] summary,
+    .variant-picker summary:focus-visible {
+        border-color: #6b73ff;
+        box-shadow: 0 0 0 3px rgba(107, 115, 255, 0.1);
+        outline: none;
+    }
+
+    .variant-caret {
+        color: #6b73ff;
+        font-size: 1.1rem;
+        transition: transform 0.2s ease;
+    }
+
+    .variant-picker[open] .variant-caret {
+        transform: rotate(180deg);
+    }
+
+    .variant-options {
+        position: absolute;
+        z-index: 20;
+        left: 0;
+        right: 0;
+        top: calc(100% + 6px);
+        background: #fff;
+        border: 2px solid #e0e0ff;
+        border-radius: 12px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
         padding: 0.4rem;
-        border-radius: 6px;
-        border: 1px solid #c5c9ff;
-        font-size: 0.9rem;
+        max-height: 320px;
+        overflow-y: auto;
+    }
+
+    .variant-row {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 48px 1fr auto;
+        align-items: center;
+        gap: 0.75rem;
+        text-align: left;
+    }
+
+    .variant-name {
+        font-weight: bold;
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+    .variant-row .product-price {
+        color: #ff6b9d;
+        font-weight: bold;
+    }
+
+    .variant-option {
+        display: flex;
+        width: 100%;
+        padding: 0.4rem 0.5rem;
+        border: none;
+        border-radius: 10px;
+        background: none;
+        cursor: pointer;
+        font: inherit;
+    }
+
+    .variant-option:hover,
+    .variant-option:focus-visible {
+        background: #f5f6ff;
+        outline: none;
+    }
+
+    .variant-option.selected {
+        background: #fff0f6;
+    }
+
+    .product-price-display {
+        text-align: center;
+        color: #ff6b9d;
+        font-size: 1.6rem;
+        font-weight: bold;
+        margin: -0.75rem 0 1.25rem;
+    }
+
+    .order-empty-hint {
+        text-align: center;
+        color: #666;
+        font-size: 1.05rem;
+        padding: 2rem 0;
+    }
+
+    .qty-stepper {
+        display: flex;
+        align-items: stretch;
+        max-width: 180px;
+    }
+
+    .qty-stepper input {
+        text-align: center;
+        border-radius: 0 !important;
+        -moz-appearance: textfield;
+    }
+
+    .qty-stepper input:focus {
+        transform: none;
+    }
+
+    .qty-stepper input::-webkit-inner-spin-button,
+    .qty-stepper input::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+    }
+
+    .qty-btn {
+        width: 48px;
+        flex-shrink: 0;
+        border: 2px solid #e0e0e0;
+        background: #f5f6ff;
+        color: #6b73ff;
+        font-size: 1.4rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .qty-btn:first-child {
+        border-radius: 12px 0 0 12px;
+        border-right: none;
+    }
+
+    .qty-btn:last-child {
+        border-radius: 0 12px 12px 0;
+        border-left: none;
+    }
+
+    .qty-btn:hover {
+        background: #e8eaff;
     }
 
     .order-form-section {
@@ -626,8 +838,10 @@
 
         .product-list-section {
             position: static;
-            max-height: 300px;
-            overflow-y: auto;
+        }
+
+        .product-list {
+            max-height: 320px;
         }
 
         .order-form-section {
@@ -844,7 +1058,7 @@
             const lineTotal = (item.price * item.quantity).toFixed(2);
             row.innerHTML =
                 '<div class="cart-item-info">' +
-                '<span class="cart-item-name">' + item.name + '</span>' +
+                '<span class="cart-item-name">' + titleCase(item.name) + '</span>' +
                 '<span class="cart-item-meta">$' + item.price.toFixed(2) + ' x ' + item.quantity + '</span>' +
                 '</div>' +
                 '<div class="cart-item-right">' +
@@ -897,7 +1111,7 @@
         saveCart(cart);
         renderCart();
 
-        showStatus(name + ' x' + quantity + ' added to your cart. Click Place Order when ready.', 'success');
+        showStatus(titleCase(name) + ' x' + quantity + ' added to your cart. Click Place Order when ready.', 'success');
         return true;
     }
 
@@ -905,62 +1119,174 @@
         const list = document.getElementById('product-list');
         if (!list) return;
         list.innerHTML = '';
-        const segments = window.location.pathname.split('/').filter(Boolean);
-        const currentCode = (segments[segments.length - 1] || '').toUpperCase();
         const seenGroups = {};
-        PRODUCTS.forEach(function (p) {
-            if (p.group) {
-                if (seenGroups[p.group]) return;
-                seenGroups[p.group] = true;
-                const members = PRODUCTS.filter(function (m) { return m.group === p.group; });
-                const prices = members.map(function (m) { return m.price; }).filter(function (v) { return v !== null; });
-                const lo = Math.min.apply(null, prices), hi = Math.max.apply(null, prices);
-                const priceText = prices.length === 0 ? 'Quote' : '$' + lo.toFixed(2) + (hi > lo ? ' - $' + hi.toFixed(2) : '');
-                const group = document.createElement('div');
-                group.className = 'product-list-item product-group';
-                const select = document.createElement('select');
-                select.setAttribute('aria-label', 'Choose ' + p.group);
-                select.innerHTML = '<option value="">Choose type...</option>';
-                members.forEach(function (m) {
-                    const opt = document.createElement('option');
-                    opt.value = m.code;
-                    opt.textContent = m.name + (m.price === null ? '' : ' ($' + m.price.toFixed(2) + ')');
-                    if (m.code.toUpperCase() === currentCode) opt.selected = true;
-                    select.appendChild(opt);
-                });
-                select.addEventListener('change', function () {
-                    if (select.value) window.location.href = '/order/' + select.value + '/';
-                });
-                group.innerHTML = '<span class="product-name"></span><span class="product-price"></span>';
-                group.querySelector('.product-name').textContent = p.group;
-                group.querySelector('.product-price').textContent = priceText;
-                group.appendChild(select);
-                list.appendChild(group);
-                return;
+        let lastCategory = null;
+        sortedProducts().forEach(function (p) {
+            const category = p.category || 'More';
+            if (category !== lastCategory && (!p.group || !seenGroups[p.group])) {
+                lastCategory = category;
+                const heading = document.createElement('h3');
+                heading.className = 'product-category';
+                heading.textContent = category;
+                list.appendChild(heading);
             }
+            // Grouped products get one entry; the type is picked in the middle panel.
+            if (p.group && seenGroups[p.group]) return;
+            const members = p.group ? PRODUCTS.filter(function (m) { return m.group === p.group; }) : [p];
+            if (p.group) seenGroups[p.group] = true;
+            const prices = members.filter(function (m) { return m.price !== null; }).map(function (m) { return m.price; });
+            const lo = Math.min.apply(null, prices), hi = Math.max.apply(null, prices);
+
             const item = document.createElement('a');
             item.className = 'product-list-item';
             item.href = '/order/' + p.code + '/';
-            item.innerHTML = '<span class="product-name">' + p.name + '</span>' +
-                '<span class="product-price">$' + (p.price === null ? 'Quote' : p.price.toFixed(2)) + '</span>';
+            item.dataset.codes = members.map(function (m) { return m.code; }).join(',');
+            item.innerHTML = '<span class="product-thumb"></span><span class="product-name"></span><span class="product-price"></span>';
+            const thumbSrc = productImageSrc(p);
+            if (thumbSrc) {
+                const img = document.createElement('img');
+                img.src = thumbSrc;
+                img.alt = '';
+                img.loading = 'lazy';
+                item.querySelector('.product-thumb').appendChild(img);
+            }
+            item.querySelector('.product-name').textContent = titleCase(p.group || p.name);
+            item.querySelector('.product-price').textContent = prices.length === 0 ? 'Quote'
+                : '$' + lo.toFixed(2) + (hi > lo ? '+' : '');
+            item.addEventListener('click', function (e) {
+                if (e.ctrlKey || e.metaKey || e.shiftKey) return; // let new-tab clicks through
+                e.preventDefault();
+                history.pushState(null, '', item.getAttribute('href'));
+                applyProductFromUrl(window.innerWidth > 768);
+            });
             list.appendChild(item);
         });
     }
 
-    function applyProductFromUrl() {
+    // Section order in the store list; categories not listed here go last.
+    const CATEGORY_ORDER = ['Lips', 'Face', 'Eyes', 'Skincare'];
+
+    function sortedProducts() {
+        function rank(p) {
+            const i = CATEGORY_ORDER.indexOf(p.category);
+            return i === -1 ? CATEGORY_ORDER.length : i;
+        }
+        // Grouped products sort by group name so they stay together.
+        return PRODUCTS.slice().sort(function (a, b) {
+            return rank(a) - rank(b)
+                || (a.category || '').localeCompare(b.category || '')
+                || (a.group || a.name).localeCompare(b.group || b.name, undefined, { sensitivity: 'base' })
+                || a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+        });
+    }
+
+    function productImageSrc(product) {
+        return product.image ? '/order/images/' + product.image.replace(/^images\//, '') : '';
+    }
+
+    function variantRow(product) {
+        const row = document.createElement('span');
+        row.className = 'variant-row';
+        row.innerHTML = '<span class="product-thumb"></span><span class="variant-name"></span><span class="product-price"></span>';
+        const src = productImageSrc(product);
+        if (src) {
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = '';
+            row.querySelector('.product-thumb').appendChild(img);
+        }
+        row.querySelector('.variant-name').textContent = titleCase(product.name);
+        row.querySelector('.product-price').textContent = product.price === null ? 'Quote' : '$' + product.price.toFixed(2);
+        return row;
+    }
+
+    function caret() {
+        const c = document.createElement('span');
+        c.className = 'variant-caret';
+        c.setAttribute('aria-hidden', 'true');
+        c.textContent = '▾';
+        return c;
+    }
+
+    // Close the shade picker when clicking elsewhere or pressing Escape.
+    document.addEventListener('click', function (e) {
+        const picker = document.getElementById('variant-picker');
+        if (picker.open && !picker.contains(e.target)) picker.open = false;
+    });
+    document.addEventListener('keydown', function (e) {
+        const picker = document.getElementById('variant-picker');
+        if (e.key === 'Escape' && picker.open) {
+            picker.open = false;
+            picker.querySelector('summary').focus();
+        }
+    });
+
+    function titleCase(text) {
+        return text.replace(/\b[a-z]/g, function (c) { return c.toUpperCase(); });
+    }
+
+    window.addEventListener('popstate', function () { applyProductFromUrl(true); });
+
+    function applyProductFromUrl(skipScroll) {
         const segments = window.location.pathname.split('/').filter(Boolean);
         const code = (segments[segments.length - 1] || '').toUpperCase();
         const product = PRODUCT_CODES[code];
+        const form = document.getElementById('order-form');
+        const priceDisplay = document.getElementById('product-price-display');
+        document.querySelectorAll('.product-list-item').forEach(function (el) {
+            el.classList.toggle('active', !!product && el.dataset.codes.split(',').indexOf(product.code) !== -1);
+        });
+        document.getElementById('order-empty-hint').style.display = product ? 'none' : 'block';
         if (!product) {
-            showStatus('No product selected. Please visit the product link to place an order.', 'error');
+            // Plain /order/ page, or an unknown code: show the picker prompt, not an error.
+            document.getElementById('order-title').textContent = code === 'ORDER' ? 'Pick a Product' : 'Product Not Found';
+            ['product-variant', 'product-description', 'product-image'].forEach(function (id) {
+                document.getElementById(id).style.display = 'none';
+            });
+            priceDisplay.style.display = 'none';
+            form.style.display = 'none';
             return;
         }
+        form.style.display = 'block';
+        document.getElementById('form-status').className = 'form-status';
+        document.getElementById('quantity').value = 1;
 
         const input = document.getElementById('product');
         if (input) input.value = product.name;
 
         const title = document.getElementById('order-title');
-        if (title) title.textContent = 'Place Your Order for ' + product.name;
+        if (title) title.textContent = titleCase(product.name);
+
+        priceDisplay.textContent = product.price === null ? 'Price on request' : '$' + product.price.toFixed(2);
+        priceDisplay.style.display = 'block';
+
+        const variantBox = document.getElementById('product-variant');
+        const picker = document.getElementById('variant-picker');
+        const optionsBox = document.getElementById('variant-options');
+        if (product.group) {
+            document.getElementById('variant-label').textContent = 'Choose ' + product.group;
+            document.getElementById('variant-current').replaceChildren(variantRow(product), caret());
+            optionsBox.innerHTML = '';
+            sortedProducts().filter(function (m) { return m.group === product.group; }).forEach(function (m) {
+                const opt = document.createElement('button');
+                opt.type = 'button';
+                opt.className = 'variant-option' + (m.code === product.code ? ' selected' : '');
+                opt.setAttribute('role', 'option');
+                opt.setAttribute('aria-selected', m.code === product.code);
+                opt.appendChild(variantRow(m));
+                opt.addEventListener('click', function () {
+                    picker.open = false;
+                    // Swap the product in place so the page does not reload and jump.
+                    history.replaceState(null, '', window.location.pathname.replace(/[^/]+\/?$/, m.code + '/'));
+                    applyProductFromUrl(true);
+                });
+                optionsBox.appendChild(opt);
+            });
+            picker.open = false;
+            variantBox.style.display = 'block';
+        } else {
+            variantBox.style.display = 'none';
+        }
 
         const descBox = document.getElementById('product-description');
         if (descBox && product.description) {
@@ -972,17 +1298,18 @@
 
         const imgBox = document.getElementById('product-image');
         if (imgBox && product.image) {
-            const imgSrc = '/order/images/' + product.image.replace(/^images\//, '');
-            imgBox.innerHTML = '<img src="' + imgSrc + '" alt="' + product.name + '">';
+            imgBox.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = productImageSrc(product);
+            img.alt = titleCase(product.name);
+            imgBox.appendChild(img);
             imgBox.style.display = 'block';
         } else if (imgBox) {
             imgBox.style.display = 'none';
         }
 
-        showStatus(product.name + ' selected. Set quantity and click Add to Cart.', 'success');
-        const form = document.getElementById('order-form');
-        if (form) {
-            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (!skipScroll) {
+            document.querySelector('.order-form-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
 
@@ -1190,8 +1517,18 @@
         summaryEl.style.display = 'block';
     }
 
-    document.addEventListener('DOMContentLoaded', applyProductFromUrl);
-    document.addEventListener('DOMContentLoaded', renderProductList);
+
+    document.querySelectorAll('.qty-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const qty = document.getElementById('quantity');
+            const next = (parseInt(qty.value, 10) || 1) + parseInt(btn.dataset.step, 10);
+            qty.value = Math.max(1, Math.min(99, next));
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        renderProductList();
+        applyProductFromUrl(false); // after the list so the active item gets highlighted
+    });
     document.addEventListener('DOMContentLoaded', renderCart);
     document.addEventListener('click', function (e) {
         const btn = e.target.closest ? e.target.closest('button') : e.target;

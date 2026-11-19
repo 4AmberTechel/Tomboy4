@@ -2491,3 +2491,95 @@ body.modal-open {
         grid-template-columns: 1fr !important;
     }
 }
+/* ===== Peach card theme (readability over photo backgrounds) =====
+   Matches the per-page blocks in music, modeling, bio and acting templates.
+   !important is needed where older rules above use it (e.g. .portfolio-item). */
+.hero-content,
+.album-announcement,
+.portfolio-item,
+.reviews-header,
+.reviews-content,
+.bts-header,
+.contact-form-section,
+.contact-info-section,
+.construction-message,
+.product-list-section,
+.order-form-section,
+.cart-section,
+.modeling-header,
+.modeling-intro,
+.modeling-gallery {
+    background: linear-gradient(135deg, rgba(255, 243, 232, 0.96), rgba(255, 227, 236, 0.96)) !important;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* Content wrappers that were near-transparent: let the inner cards carry the color. */
+.reviews-content {
+    padding: 2rem;
+}
+
+.modeling-content {
+    background: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+.modeling-header,
+.modeling-intro,
+.modeling-gallery {
+    padding: 2rem;
+    margin: 0 0 2rem;
+    max-width: none;
+}
+
+.modeling-intro,
+.modeling-intro p {
+    color: #333;
+}
+
+.hero-content {
+    border-radius: 20px;
+    margin-bottom: 2rem;
+}
+
+/* BTS header was dark glass with light text; switch text to dark for the peach card. */
+.bts-header {
+    max-width: 1100px;
+    margin: 2rem auto;
+}
+
+.bts-header h1 {
+    color: #c2185b;
+}
+
+.bts-header p {
+    color: #444;
+}
+
+.testimonials-heading,
+.reviews-content h2 {
+    color: #c2185b;
+}
+
+@media (max-width: 768px) {
+    .reviews-content,
+    .modeling-header,
+    .modeling-intro,
+    .modeling-gallery {
+        padding: 1.25rem;
+    }
+
+    .hero-content {
+        padding: 1.5rem 1rem !important;
+    }
+}
+
+/* Page titles that sit directly on the background (contact, store) */
+.page-section > .page-title,
+.page-section > .page-subtitle {
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
