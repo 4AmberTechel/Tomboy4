@@ -254,6 +254,18 @@
         white-space: nowrap;
     }
 
+    .product-group {
+        flex-wrap: wrap;
+    }
+
+    .product-group select {
+        flex-basis: 100%;
+        padding: 0.4rem;
+        border-radius: 6px;
+        border: 1px solid #c5c9ff;
+        font-size: 0.9rem;
+    }
+
     .order-form-section {
         background: rgba(255, 255, 255, 0.95);
         border-radius: 20px;
@@ -893,7 +905,39 @@
         const list = document.getElementById('product-list');
         if (!list) return;
         list.innerHTML = '';
+        const segments = window.location.pathname.split('/').filter(Boolean);
+        const currentCode = (segments[segments.length - 1] || '').toUpperCase();
+        const seenGroups = {};
         PRODUCTS.forEach(function (p) {
+            if (p.group) {
+                if (seenGroups[p.group]) return;
+                seenGroups[p.group] = true;
+                const members = PRODUCTS.filter(function (m) { return m.group === p.group; });
+                const prices = members.map(function (m) { return m.price; }).filter(function (v) { return v !== null; });
+                const lo = Math.min.apply(null, prices), hi = Math.max.apply(null, prices);
+                const priceText = prices.length === 0 ? 'Quote' : '$' + lo.toFixed(2) + (hi > lo ? ' - $' + hi.toFixed(2) : '');
+                const group = document.createElement('div');
+                group.className = 'product-list-item product-group';
+                const select = document.createElement('select');
+                select.setAttribute('aria-label', 'Choose ' + p.group);
+                select.innerHTML = '<option value="">Choose type...</option>';
+                members.forEach(function (m) {
+                    const opt = document.createElement('option');
+                    opt.value = m.code;
+                    opt.textContent = m.name + (m.price === null ? '' : ' ($' + m.price.toFixed(2) + ')');
+                    if (m.code.toUpperCase() === currentCode) opt.selected = true;
+                    select.appendChild(opt);
+                });
+                select.addEventListener('change', function () {
+                    if (select.value) window.location.href = '/order/' + select.value + '/';
+                });
+                group.innerHTML = '<span class="product-name"></span><span class="product-price"></span>';
+                group.querySelector('.product-name').textContent = p.group;
+                group.querySelector('.product-price').textContent = priceText;
+                group.appendChild(select);
+                list.appendChild(group);
+                return;
+            }
             const item = document.createElement('a');
             item.className = 'product-list-item';
             item.href = '/order/' + p.code + '/';

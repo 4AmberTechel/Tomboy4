@@ -24,6 +24,9 @@ pub struct Product {
     pub description: Option<String>,
     #[serde(default)]
     pub image: Option<String>,
+    /// Products sharing a group are listed as one entry with a dropdown.
+    #[serde(default)]
+    pub group: Option<String>,
 }
 
 pub fn read_products() -> Vec<Product> {
