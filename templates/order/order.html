@@ -63,7 +63,7 @@
                     <span class="btn-text" id="place-order-btn-text">Place Order</span>
                     <span class="btn-icon">🛒</span>
                 </button>
-                <p class="payment-note">We're currently only accepting payments via CashApp.</p>
+                <p class="payment-note">Pay securely with debit or credit card through Stripe.</p>
             </div>
         </div>
     </div>
@@ -186,9 +186,9 @@
         <div class="clipboard-icon">📋</div>
         <h3>Copying Information to Clipboard</h3>
         <p class="clipboard-message">Your order number and email have been copied to your clipboard.</p>
-        <p class="clipboard-warning">Make sure to <strong>paste it into the note</strong> when you pay in CashApp so
-            we can match your payment to your order.</p>
-        <button class="clipboard-btn" id="clipboard-ok" type="button">I Understand — Open CashApp</button>
+        <p class="clipboard-warning">On the Stripe page, <strong>enter exactly $<span id="clipboard-total"></span></strong>
+            as the amount so we can match your payment to your order.</p>
+        <button class="clipboard-btn" id="clipboard-ok" type="button">I Understand — Continue to Stripe</button>
     </div>
 </div>
 
@@ -1325,8 +1325,15 @@
         return code;
     }
 
-    function openCashApp(amount) {
-        window.open('https://cash.app/$AmberTechel/' + amount, '_blank');
+    // Stripe "customer chooses price" Payment Link; the amount can't be prefilled, so the buyer types it.
+    const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/4gM28rg8Setm0682Cc5EY00';
+
+    function openStripe(orderNumber, email) {
+        const url = new URL(STRIPE_PAYMENT_LINK);
+        // client_reference_id shows on the payment in the Stripe Dashboard, so it can be matched to the order.
+        url.searchParams.set('client_reference_id', orderNumber);
+        if (email) url.searchParams.set('prefilled_email', email);
+        window.open(url.toString(), '_blank');
     }
 
     function copyOrderInfo(orderNumber, email) {
@@ -1379,7 +1386,7 @@
                     throw new Error(result.message || 'Order submission failed');
                 }
                 lastSubmitTime = Date.now();
-                showStatus(`Thank you ${name}! Order #${orderNumber} submitted. Your order info "${noteText}" was copied — paste it into the CashApp note to complete your payment.`, 'success');
+                showStatus(`Thank you ${name}! Order #${orderNumber} submitted. Your order info "${noteText}" was copied — complete your payment of the exact total on the Stripe page.`, 'success');
                 form.reset();
                 saveCart([]);
                 renderCart();
@@ -1441,7 +1448,8 @@
         const total = (subtotal + shippingCost).toFixed(2);
 
         const noteText = copyOrderInfo(orderNumber, email);
-        pendingOrder = { form, orderNumber, total, noteText, shippingCost };
+        pendingOrder = { form, orderNumber, total, noteText, shippingCost, email };
+        document.getElementById('clipboard-total').textContent = total;
 
         document.getElementById('checkout-modal').classList.remove('show');
         document.getElementById('clipboard-modal').classList.add('show');
@@ -1452,7 +1460,7 @@
     document.getElementById('clipboard-ok').addEventListener('click', function () {
         if (!pendingOrder) return;
         document.getElementById('clipboard-modal').classList.remove('show');
-        openCashApp(pendingOrder.total);
+        openStripe(pendingOrder.orderNumber, pendingOrder.email);
         submitOrder(pendingOrder.form, pendingOrder.orderNumber, pendingOrder.noteText, pendingOrder.shippingCost);
         pendingOrder = null;
     });
